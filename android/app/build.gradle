@@ -11,15 +11,15 @@ android {
         applicationId 'app.yoru'
         minSdk 26
         targetSdk 35
-        versionCode 2
-        versionName '0.2.0'
+        versionCode 3
+        versionName '0.3.0'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     splits { abi { enable true; reset(); include (project.findProperty('testAbi') ?: 'arm64-v8a'); universalApk false } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = '17' }
     buildFeatures { compose true; buildConfig true }
-    buildTypes { release { minifyEnabled false } }
+    buildTypes { release { minifyEnabled false; signingConfig signingConfigs.debug } }
     packaging { resources.excludes += ['META-INF/DEPENDENCIES','META-INF/LICENSE*','META-INF/NOTICE*','META-INF/AL2.0','META-INF/LGPL2.1'] }
 }
 dependencies {

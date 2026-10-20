@@ -3,6 +3,7 @@ package app.yoru
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 
+const val YUZONO = "https://raw.githubusercontent.com/yuzono/anime-repo/repo/index.min.json"
 const val KEIYOUSHI = "https://github.com/keiyoushi/extensions/raw/repo/index.pb"
 const val KEIYOUSHI_SIGNER = "9add655a78e96c4ec7a53ef89dccb557cb5d767489fac5e785d671a5a75d4da2"
 
@@ -62,7 +63,25 @@ data class Title(
         get() = "${source?.key?:"editorial"}:$url"
 }
 
-data class Episode(val name: String, val url: String, val raw: Map<String, Any?> = emptyMap())
+data class Episode(val name: String, val url: String, val raw: Map<String, Any?> = emptyMap()) {
+    fun label(manga: Boolean): String {
+        val number =
+            (raw["episode_number"] as? Number)?.toDouble()?.takeIf { it >= 0 && it.isFinite() }
+                ?: return name
+        val formatted = java.math.BigDecimal.valueOf(number).stripTrailingZeros().toPlainString()
+        val prefix = if (manga) "Chapter" else "Episode"
+        if (
+            Regex(
+                    "(?i)^(chapter|ch[.]?|episode|ep[.]?)\\s*" +
+                        Regex.escape(formatted) +
+                        "(?:\\D|$)"
+                )
+                .containsMatchIn(name)
+        )
+            return name
+        return "$prefix $formatted · $name"
+    }
+}
 
 data class Detail(val media: Title, val episodes: List<Episode>)
 
@@ -70,12 +89,16 @@ data class PageImage(val url: String, val headers: Map<String, String> = emptyMa
 
 data class Subtitle(val file: String, val label: String)
 
+data class Segment(val start: Double, val end: Double, val name: String)
+
 data class Stream(
     val url: String,
     val label: String,
     val headers: Map<String, String> = emptyMap(),
     val subtitles: List<Subtitle> = emptyList(),
     val hls: Boolean = false,
+    val audios: List<Subtitle> = emptyList(),
+    val timestamps: List<Segment> = emptyList(),
 )
 
 data class Progress(
@@ -92,7 +115,11 @@ data class Progress(
 data class UserState(
     val library: List<Title> = emptyList(),
     val history: List<Progress> = emptyList(),
-    val repos: List<Repo> = listOf(Repo("Keiyoushi", KEIYOUSHI, "mihon", KEIYOUSHI_SIGNER)),
+    val repos: List<Repo> =
+        listOf(
+            Repo("Keiyoushi", KEIYOUSHI, "mihon", KEIYOUSHI_SIGNER),
+            Repo("Yūzōnō", YUZONO, "aniyomi"),
+        ),
     val installed: List<Installed> = emptyList(),
     val mode: String = "anime",
     val theme: String = "dark",

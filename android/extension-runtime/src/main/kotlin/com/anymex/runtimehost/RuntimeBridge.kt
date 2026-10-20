@@ -14,13 +14,6 @@ import com.anymex.runtimehost.network.MangaImageProxy
 import java.lang.ref.WeakReference
 import java.net.URLEncoder
 
-import com.lagradost.cloudstream3.AcraApplication
-import com.lagradost.cloudstream3.APIHolder
-import com.lagradost.cloudstream3.CloudStreamApp
-import com.lagradost.cloudstream3.plugins.PluginManager
-import com.lagradost.cloudstream3.plugins.RepositoryManager
-import com.lagradost.cloudstream3.plugins.AppCompatActivityWrapper
-import com.lagradost.cloudstream3.utils.DataStore
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.animesource.model.Track
 import eu.kanade.tachiyomi.animesource.model.TimeStamp
@@ -60,8 +53,6 @@ object RuntimeBridge {
     private var initialized = false
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val csPathRegistry = mutableMapOf<String, String>() 
-    private val csMetadataRegistry = mutableMapOf<String, ProviderMetadata>() 
     private val aniyomiPathRegistry = mutableMapOf<String, String>() 
     private val aniyomiIsAnimeRegistry = mutableMapOf<String, Boolean>() 
     private val activeRequests = mutableMapOf<String, Job>() 
@@ -85,15 +76,6 @@ object RuntimeBridge {
 
         Log.i(TAG, "Initializing Runtime Host - Version: 1.0.6")
 
-        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-            val initialActivity = resolveAppCompatActivity(context)
-            if (initialActivity != null) {
-                lastKnownActivity = WeakReference(initialActivity)
-                com.lagradost.cloudstream3.MainActivity.activity = initialActivity
-                com.lagradost.cloudstream3.MainActivity.context = initialActivity
-            }
-        }
-
         try {
             Injekt.addSingletonFactory<android.app.Application> {
                 context.applicationContext as android.app.Application
@@ -108,9 +90,6 @@ object RuntimeBridge {
                 }
             }
 
-            DataStore.init(context.applicationContext)
-            AcraApplication.context = context.applicationContext
-            CloudStreamApp.context = context.applicationContext
 
             try {
                 okhttp3.OkHttp.initialize(context.applicationContext)
@@ -118,34 +97,16 @@ object RuntimeBridge {
                 Log.w(TAG, "Failed to initialize OkHttp platform context manually", e)
             }
 
-            (context.applicationContext as? Application)?.registerActivityLifecycleCallbacks(
-                object : Application.ActivityLifecycleCallbacks {
-                    override fun onActivityResumed(activity: Activity) {
-                        if (isSubclassOfAppCompatActivity(activity.javaClass)) {
-                            lastKnownActivity = WeakReference(activity)
-                            com.lagradost.cloudstream3.MainActivity.activity = activity
-                            com.lagradost.cloudstream3.MainActivity.context = activity
-                        }
-                    }
-                    override fun onActivityCreated(a: Activity, b: Bundle?) {
-                        if (isSubclassOfAppCompatActivity(a.javaClass)) {
-                            com.lagradost.cloudstream3.MainActivity.activity = a
-                            com.lagradost.cloudstream3.MainActivity.context = a
-                        }
-                    }
-                    override fun onActivityStarted(a: Activity) {}
-                    override fun onActivityPaused(a: Activity) {}
-                    override fun onActivityStopped(a: Activity) {}
-                    override fun onActivitySaveInstanceState(a: Activity, b: Bundle) {}
-                    override fun onActivityDestroyed(a: Activity) {
-                        if (lastKnownActivity?.get() === a) lastKnownActivity = null
-                        if (com.lagradost.cloudstream3.MainActivity.activity === a) {
-                            com.lagradost.cloudstream3.MainActivity.activity = null
-                            com.lagradost.cloudstream3.MainActivity.context = null
-                        }
-                    }
-                }
-            )
+            HostContext.context = context.applicationContext
+            (context.applicationContext as? Application)?.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityResumed(a: Activity) { if (a is androidx.appcompat.app.AppCompatActivity) lastKnownActivity = WeakReference(a) }
+                override fun onActivityDestroyed(a: Activity) { if (lastKnownActivity?.get() === a) lastKnownActivity = null }
+                override fun onActivityCreated(a: Activity, b: Bundle?) {}
+                override fun onActivityStarted(a: Activity) {}
+                override fun onActivityPaused(a: Activity) {}
+                override fun onActivityStopped(a: Activity) {}
+                override fun onActivitySaveInstanceState(a: Activity, b: Bundle) {}
+            })
 
             extensionManager = AniyomiExtensionManager(context.applicationContext)
             Injekt.addSingletonFactory<AniyomiExtensionManager> { extensionManager!! }
@@ -194,8 +155,6 @@ object RuntimeBridge {
                 Log.e(TAG, "Error stopping MangaImageProxy: ${e.message}")
             }
 
-            csPathRegistry.clear()
-            csMetadataRegistry.clear()
             aniyomiPathRegistry.clear()
             aniyomiIsAnimeRegistry.clear()
             Log.i(TAG, "Runtime Host shutdown complete")
@@ -221,7 +180,7 @@ object RuntimeBridge {
                 val supportsPopular = source is eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
                 mapOf(
                     "id" to source.id.toString(),
-                    "name" to ext.name,
+                    "name" to source.name,
                     "baseUrl" to baseUrl,
                     "lang" to source.lang,
                     "isNsfw" to ext.isNsfw,
@@ -259,7 +218,7 @@ object RuntimeBridge {
                 val supportsPopular = source is eu.kanade.tachiyomi.source.CatalogueSource
                 mapOf(
                     "id" to source.id.toString(),
-                    "name" to ext.name,
+                    "name" to source.name,
                     "baseUrl" to baseUrl,
                     "lang" to source.lang,
                     "isNsfw" to ext.isNsfw,
@@ -493,9 +452,9 @@ object RuntimeBridge {
             val eps = if (isAnime) m.getEpisodeList(anime) else m.getChapterList(anime)
 
             mapOf(
-                "title" to anime.title,
+                "title" to details.title,
                 "url" to anime.url,
-                "cover" to anime.thumbnail_url,
+                "cover" to (details.thumbnail_url ?: anime.thumbnail_url),
                 "artist" to details.artist,
                 "author" to details.author,
                 "description" to details.description,
@@ -554,7 +513,14 @@ object RuntimeBridge {
             }
             val m = media(context, sourceId, isAnime)
             m.parameters = parameters
-            m.getVideoList(ep).map { videoToMap(it) }
+            m.getVideoList(ep).map { video ->
+                val http = m.getHttpSource() as? AnimeHttpSource
+                if (video.videoUrl.isBlank() || video.videoUrl == "null") {
+                    requireNotNull(http) { "Source returned an unresolved video" }
+                    video.videoUrl = http.getVideoUrl(video)
+                }
+                videoToMap(video.copy(headers = video.headers ?: http?.headers))
+            }
         }
         if (token != null) activeRequests[token] = job
         return try {
@@ -902,250 +868,13 @@ object RuntimeBridge {
         true
     }
 
-    fun csLoadPlugin(context: Context, path: String): Boolean {
-        val file = File(path)
-        if (!file.exists()) {
-            Log.e(TAG, "Plugin file not found: $path")
-            return false
-        }
-        
-        return runBlocking {
-            val success = PluginManager.loadPlugin(context, file)
-            if (success) {
-                val pluginData = PluginManager.getPluginsOnline()
-                APIHolder.apis.forEach { provider ->
-                    if (provider.sourcePlugin == path || provider.sourcePlugin?.contains(file.name) == true) {
-                        val data = pluginData.firstOrNull { it.filePath == provider.sourcePlugin }
-                        val pluginInstance = PluginManager.plugins[provider.sourcePlugin]
-                        val hasSettings = (pluginInstance as? com.lagradost.cloudstream3.plugins.Plugin)?.openSettings != null
-                        csPathRegistry[provider.name] = path
-                        csMetadataRegistry[provider.name] = ProviderMetadata(
-                            id = provider.name,
-                            name = provider.name,
-                            mainUrl = provider.mainUrl,
-                            lang = provider.lang,
-                            sourcePlugin = provider.sourcePlugin,
-                            iconUrl = data?.iconUrl,
-                            internalName = data?.internalName,
-                            hasSettings = hasSettings
-                        )
-                        Log.d(TAG, "Registered CloudStream Provider: ${provider.name}")
-                    }
-                }
-            }
-            success
-        }
-    }
-
-    fun csUnloadPlugin(apiName: String): Boolean {
-        if (apiName.isBlank()) return false
-        
-        val provider = APIHolder.apis.find { it.name.equals(apiName, ignoreCase = true) }
-        val internalName = provider?.sourcePlugin ?: csMetadataRegistry[apiName]?.mainUrl ?: apiName
-        
-        Log.i(TAG, "Attempting to unload plugin: $apiName (Internal Path/ID: $internalName)")
-
-        val removedCount = APIHolder.apis.count { 
-            it.name.equals(apiName, ignoreCase = true) || 
-            (it.sourcePlugin != null && it.sourcePlugin!!.endsWith(internalName, ignoreCase = true)) 
-        }
-
-        APIHolder.apis.removeIf { 
-            it.name.equals(apiName, ignoreCase = true) || 
-            (it.sourcePlugin != null && it.sourcePlugin!!.endsWith(internalName, ignoreCase = true)) 
-        }
-
-        csMetadataRegistry.remove(apiName)
-        
-        val fileName = internalName.substringAfterLast("/")
-        if (fileName.length > 3) {
-            val extraRemoved = APIHolder.apis.count { it.sourcePlugin?.endsWith(fileName, ignoreCase = true) == true }
-            APIHolder.apis.removeIf { it.sourcePlugin?.endsWith(fileName, ignoreCase = true) == true }
-            Log.d(TAG, "Extra removal check for '$fileName' hit $extraRemoved providers")
-        }
-
-        PluginManager.unloadPlugin(internalName)
-        Log.i(TAG, "Unloaded $removedCount providers for plugin: $apiName")
-        return true
-    }
-
-    fun csGetRegisteredProviders(): List<Map<String, Any?>> {
-        return csMetadataRegistry.values.map { provider ->
-            mapOf(
-                "id" to provider.name,
-                "name" to provider.name,
-                "url" to provider.mainUrl,
-                "language" to provider.lang,
-                "plugin" to (provider.sourcePlugin ?: ""),
-                "iconUrl" to (provider.iconUrl ?: ""),
-                "internalName" to (provider.internalName ?: provider.name),
-                "itemType" to 1,
-                "hasSettings" to provider.hasSettings,
-            )
-        }
-    }
-
-    private fun isSubclassOfAppCompatActivity(cls: Class<*>): Boolean {
-        var c: Class<*>? = cls
-        while (c != null) {
-            if (c.name == "androidx.appcompat.app.AppCompatActivity") return true
-            c = c.superclass
-        }
-        return false
-    }
-
     fun resolveAppCompatActivity(context: Context): androidx.appcompat.app.AppCompatActivity? {
-        var ctx: Context? = context
-        while (ctx != null) {
-            if (isSubclassOfAppCompatActivity(ctx.javaClass)) {
-                val result = ctx as? androidx.appcompat.app.AppCompatActivity
-                if (result != null) return result
-            }
-            ctx = if (ctx is ContextWrapper) ctx.baseContext else null
+        var current: Context? = context
+        while (current != null) {
+            if (current is androidx.appcompat.app.AppCompatActivity) return current
+            current = (current as? ContextWrapper)?.baseContext
         }
-        val cached = lastKnownActivity?.get()
-        if (cached != null && isSubclassOfAppCompatActivity(cached.javaClass)) {
-            return cached as? androidx.appcompat.app.AppCompatActivity
-        }
-        return null
-    }
-
-    fun csOpenSettings(context: Context, pluginName: String): Boolean {
-        val meta = csMetadataRegistry[pluginName] ?: return false
-        val pluginInstance = PluginManager.plugins[meta.sourcePlugin]
-        val plugin = pluginInstance as? com.lagradost.cloudstream3.plugins.Plugin ?: return false
-        val openSettingsFn = plugin.openSettings ?: return false
-
-        val appCompatActivity = resolveAppCompatActivity(context) ?: AppCompatActivityWrapper(context)
-
-        com.lagradost.cloudstream3.MainActivity.activity = appCompatActivity
-        com.lagradost.cloudstream3.MainActivity.context = appCompatActivity
-
-        try {
-            val styleClass = Class.forName("com.google.android.material.R\$style")
-            val field = styleClass.getField("Theme_MaterialComponents_DayNight_NoActionBar")
-            val themeId = field.getInt(null)
-            appCompatActivity.setTheme(themeId)
-        } catch (e: Throwable) {
-            Log.e(TAG, "Failed to setTheme programmatically via reflection", e)
-        }
-
-        openSettingsFn(appCompatActivity)
-        return true
-    }
-
-
-    @JvmStatic
-    @JvmOverloads
-    fun csSearch(
-        context: Context,
-        query: String,
-        apiName: String?,
-        page: Int,
-        parameters: Map<String, Any?>? = null,
-    ): Map<String, Any?> {
-        val token = parameters?.get("token") as? String
-        val job = scope.async {
-            if (apiName != null) {
-                val provider = APIHolder.apis.find { it.name.equals(apiName, ignoreCase = true) }
-                    ?: return@async mapOf("list" to emptyList<Any>(), "hasNextPage" to false)
-                com.anymex.runtimehost.cloudstream.CloudStreamSourceMethods(provider).search(query, page)
-            } else {
-                val allItems = APIHolder.apis.flatMap { provider ->
-                    @Suppress("UNCHECKED_CAST")
-                    com.anymex.runtimehost.cloudstream.CloudStreamSourceMethods(provider)
-                        .search(query, page)["list"] as? List<Map<String, Any?>> ?: emptyList()
-                }
-                mapOf("list" to allItems, "hasNextPage" to false)
-            }
-        }
-        if (token != null) activeRequests[token] = job
-        return try {
-            runBlocking { job.await() }
-        } finally {
-            if (token != null) activeRequests.remove(token)
-        }
-    }
-
-    @JvmStatic
-    @JvmOverloads
-    fun csGetDetail(
-        context: Context,
-        apiName: String,
-        url: String,
-        parameters: Map<String, Any?>? = null,
-    ): Map<String, Any?> {
-        val token = parameters?.get("token") as? String
-        val job = scope.async {
-            try {
-                val provider = APIHolder.apis.find { it.name.equals(apiName, ignoreCase = true) }
-                    ?: return@async mapOf("title" to null, "url" to url, "error" to "Provider not found")
-                com.anymex.runtimehost.cloudstream.CloudStreamSourceMethods(provider).getDetails(url) ?: emptyMap()
-            } catch (e: Exception) {
-                Log.e(TAG, "csGetDetail failed: ${e.message}")
-                mapOf("title" to null, "url" to url, "error" to e.message)
-            }
-        }
-        if (token != null) activeRequests[token] = job
-        return try {
-            runBlocking { job.await() }
-        } finally {
-            if (token != null) activeRequests.remove(token)
-        }
-    }
-
-    @JvmStatic
-    @JvmOverloads
-    fun csGetVideoList(
-        context: Context,
-        apiName: String,
-        url: String,
-        parameters: Map<String, Any?>? = null,
-    ): List<Map<String, Any?>> {
-        val token = parameters?.get("token") as? String
-        val job = scope.async {
-            val provider = APIHolder.apis.find { it.name.equals(apiName, ignoreCase = true) }
-                ?: throw IllegalArgumentException("Provider '$apiName' not found")
-            com.anymex.runtimehost.cloudstream.CloudStreamSourceMethods(provider).loadLinks(url)
-        }
-        if (token != null) activeRequests[token] = job
-        return try {
-            runBlocking { job.await() }
-        } finally {
-            if (token != null) activeRequests.remove(token)
-        }
-    }
-
-    @JvmStatic
-    @JvmOverloads
-    fun csGetVideoListStream(
-        context: Context,
-        apiName: String,
-        url: String,
-        onLinkFound: (Map<String, Any?>) -> Unit,
-        parameters: Map<String, Any?>? = null,
-    ) {
-        val token = parameters?.get("token") as? String
-        val extractionJob = kotlinx.coroutines.Job()
-        if (token != null) activeRequests[token] = extractionJob
-
-        try {
-            runBlocking(extractionJob + kotlinx.coroutines.Dispatchers.IO) {
-                val provider = APIHolder.apis.find { it.name.equals(apiName, ignoreCase = true) }
-                    ?: throw IllegalArgumentException("Provider '$apiName' not found")
-                
-                com.anymex.runtimehost.cloudstream.CloudStreamSourceMethods(provider)
-                    .loadLinksStream(url, onLinkFound)
-            }
-        } catch (e: Exception) {
-            if (e !is kotlinx.coroutines.CancellationException) {
-                Log.e("RuntimeBridge", "Extraction error: ${e.message}")
-            }
-        } finally {
-            if (token != null) activeRequests.remove(token)
-        }
-        
-        System.gc()
+        return lastKnownActivity?.get() as? androidx.appcompat.app.AppCompatActivity
     }
 
     private fun extensionManager(context: Context): AniyomiExtensionManager {

@@ -3,151 +3,151 @@
   "assets": [
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-buvcRTBx4NSm.jpg",
-      "file": "web/assets/16498.jpg"
+      "file": "android/app/src/main/assets/art/16498.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/16498-8jpFCOcDmneX.jpg",
-      "file": "web/assets/16498-banner.jpg"
+      "file": "android/app/src/main/assets/art/16498-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101922-WBsBl0ClmgYL.jpg",
-      "file": "web/assets/101922.jpg"
+      "file": "android/app/src/main/assets/art/101922.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/101922-33MtJGsUSxga.jpg",
-      "file": "web/assets/101922-banner.jpg"
+      "file": "android/app/src/main/assets/art/101922-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113415-LHBAeoZDIsnF.jpg",
-      "file": "web/assets/113415.jpg"
+      "file": "android/app/src/main/assets/art/113415.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg",
-      "file": "web/assets/113415-banner.jpg"
+      "file": "android/app/src/main/assets/art/113415-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21-ELSYx3yMPcKM.jpg",
-      "file": "web/assets/21.jpg"
+      "file": "android/app/src/main/assets/art/21.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/21-wf37VakJmZqs.jpg",
-      "file": "web/assets/21-banner.jpg"
+      "file": "android/app/src/main/assets/art/21-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20954-sYRfE5jQRtSB.jpg",
-      "file": "web/assets/20954.jpg"
+      "file": "android/app/src/main/assets/art/20954.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/20954-f30bHMXa5Qoe.jpg",
-      "file": "web/assets/20954-banner.jpg"
+      "file": "android/app/src/main/assets/art/20954-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21519-SUo3ZQuCbYhJ.png",
-      "file": "web/assets/21519.jpg"
+      "file": "android/app/src/main/assets/art/21519.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/21519-1ayMXgNlmByb.jpg",
-      "file": "web/assets/21519-banner.jpg"
+      "file": "android/app/src/main/assets/art/21519-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx154587-qQTzQnEJJ3oB.jpg",
-      "file": "web/assets/154587.jpg"
+      "file": "android/app/src/main/assets/art/154587.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/154587-ivXNJ23SM1xB.jpg",
-      "file": "web/assets/154587-banner.jpg"
+      "file": "android/app/src/main/assets/art/154587-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx151807-it355ZgzquUd.png",
-      "file": "web/assets/151807.jpg"
+      "file": "android/app/src/main/assets/art/151807.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/151807-37yfQA3ym8PA.jpg",
-      "file": "web/assets/151807-banner.jpg"
+      "file": "android/app/src/main/assets/art/151807-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx171018-60q1B6GK2Ghb.jpg",
-      "file": "web/assets/171018.jpg"
+      "file": "android/app/src/main/assets/art/171018.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/171018-SpwPNAduszXl.jpg",
-      "file": "web/assets/171018-banner.jpg"
+      "file": "android/app/src/main/assets/art/171018-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1645-P6yalm0MORsY.jpg",
-      "file": "web/assets/1645.jpg"
+      "file": "android/app/src/main/assets/art/1645.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx105778-euxXZEIfDY2u.png",
-      "file": "web/assets/105778.jpg"
+      "file": "android/app/src/main/assets/art/105778.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/banner/105778-ppHaMwown6c9.jpg",
-      "file": "web/assets/105778-banner.jpg"
+      "file": "android/app/src/main/assets/art/105778-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx101517-H3TdM3g5ZUe9.jpg",
-      "file": "web/assets/101517.jpg"
+      "file": "android/app/src/main/assets/art/101517.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/banner/101517-FrJtb3Th3HtF.jpg",
-      "file": "web/assets/101517-banner.jpg"
+      "file": "android/app/src/main/assets/art/101517-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx30002-Cul4OeN7bYtn.jpg",
-      "file": "web/assets/30002.jpg"
+      "file": "android/app/src/main/assets/art/30002.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/banner/30002-3TuoSMl20fUX.jpg",
-      "file": "web/assets/30002-banner.jpg"
+      "file": "android/app/src/main/assets/art/30002-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx30013-BeslEMqiPhlk.jpg",
-      "file": "web/assets/30013.jpg"
+      "file": "android/app/src/main/assets/art/30013.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/banner/30013-hbbRZqC5MjYh.jpg",
-      "file": "web/assets/30013-banner.jpg"
+      "file": "android/app/src/main/assets/art/30013-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx87216-c9bSNVD10UuD.png",
-      "file": "web/assets/87216.jpg"
+      "file": "android/app/src/main/assets/art/87216.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/banner/87216-TVKEGfSxAqKs.jpg",
-      "file": "web/assets/87216-banner.jpg"
+      "file": "android/app/src/main/assets/art/87216-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx30012-1epmVfTSv2rr.png",
-      "file": "web/assets/30012.jpg"
+      "file": "android/app/src/main/assets/art/30012.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/banner/30012-RpbdVc2yNxhw.jpg",
-      "file": "web/assets/30012-banner.jpg"
+      "file": "android/app/src/main/assets/art/30012-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx30001-Knby7l1jevE7.jpg",
-      "file": "web/assets/30001.jpg"
+      "file": "android/app/src/main/assets/art/30001.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/banner/1-x9ksIvb9cKK2.jpg",
-      "file": "web/assets/30001-banner.jpg"
+      "file": "android/app/src/main/assets/art/30001-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx126297-SPiM7QtUnJ4P.jpg",
-      "file": "web/assets/126297.jpg"
+      "file": "android/app/src/main/assets/art/126297.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/banner/126297-Axr0Xm5JFnhz.jpg",
-      "file": "web/assets/126297-banner.jpg"
+      "file": "android/app/src/main/assets/art/126297-banner.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx85412-wzZ2QFwbZJED.jpg",
-      "file": "web/assets/85412.jpg"
+      "file": "android/app/src/main/assets/art/85412.jpg"
     },
     {
       "url": "https://s4.anilist.co/file/anilistcdn/media/manga/banner/85412-H9Uo0YNhxd9J.jpg",
-      "file": "web/assets/85412-banner.jpg"
+      "file": "android/app/src/main/assets/art/85412-banner.jpg"
     }
   ]
 }

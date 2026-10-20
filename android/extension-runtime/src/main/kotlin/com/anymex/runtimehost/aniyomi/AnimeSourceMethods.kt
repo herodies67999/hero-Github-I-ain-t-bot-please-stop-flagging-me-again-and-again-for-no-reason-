@@ -105,7 +105,11 @@ class AnimeSourceMethods(sourceID: String, langIndex: Int = 0) : AniyomiSourceMe
         }
     }
 
+    private val usesUpdateApi get() = source.javaClass.methods.any {
+        it.name == "getAnimeEpisodeUpdate" && it.declaringClass.classLoader === source.javaClass.classLoader
+    }
     override suspend fun getDetails(media: SAnime): SAnime {
+        if (usesUpdateApi) return source.getAnimeEpisodeUpdate(media, emptyList(), true, false).anime
         return try {
             source.getAnimeDetails(media)
         } catch (e: UnsupportedOperationException) {
@@ -114,6 +118,7 @@ class AnimeSourceMethods(sourceID: String, langIndex: Int = 0) : AniyomiSourceMe
     }
 
     override suspend fun getEpisodeList(media: SAnime): List<SEpisode> {
+        if (usesUpdateApi) return source.getAnimeEpisodeUpdate(media, emptyList(), false, true).episodes
         return try {
             source.getEpisodeList(media)
         } catch (e: UnsupportedOperationException) {

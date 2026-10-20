@@ -1,38 +1,35 @@
 # Validation
 
-## Reproduce device tests
+## Reproduction
 
-Build an internal x86_64 variant only for the emulator (distribution uses the default ARM64 variant):
+JDK17, Gradle8.13, Android SDK36. Build the test architecture separately from the distributed ARM64 APK:
 
 ```sh
 cd android
-./gradlew :app:assembleDebug :app:assembleDebugAndroidTest :fixture-cloudstream:assembleDebug -PtestAbi=x86_64
+./gradlew :app:assembleDebug :app:assembleDebugAndroidTest :fixture-aniyomi:assembleDebug :app:testDebugUnitTest :app:lintDebug -PtestAbi=x86_64 --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process
 adb install -r app/build/outputs/apk/debug/app-x86_64-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb push fixture-cloudstream/build/outputs/apk/debug/fixture-cloudstream-debug.apk /data/local/tmp/open-cinema.cs3
+adb push fixture-aniyomi/build/outputs/apk/debug/fixture-aniyomi-debug.apk /data/local/tmp/open-cinema.apk
 adb shell run-as app.yoru mkdir -p files
-adb shell run-as app.yoru cp /data/local/tmp/open-cinema.cs3 files/test-open-cinema.cs3
+adb shell run-as app.yoru cp /data/local/tmp/open-cinema.apk files/test-open-cinema.apk
 adb shell am instrument -w -e class app.yoru.RuntimeIntegrationTest app.yoru.test/androidx.test.runner.AndroidJUnitRunner
 adb shell am instrument -w -e class app.yoru.PlayerIntegrationTest app.yoru.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-These tests make live network requests. A corporate/sandbox HTTPS proxy requires its public CA in the test device trust store; app TLS verification must remain enabled.
+The Aniyomi fixture is a separate APK compiled only against host APIs. It exercises the combined update API, named episode, hoster extraction, headers and timestamps. Runtime tests also verify live Yuzono repository/APK loading and signer continuity, live Keiyoushi xkcd manga page decoding, removal, and invalid backups.
 
-## Coverage
+`npm test` exercises offline assembly selection/hash failures and arbitrary part order. The signed delivery is additionally reconstructed and checked with Android apksigner/aapt.
 
-The runtime test checks live Keiyoushi index parsing, signature/package/version validation, loading the current signed xkcd APK, source browsing, details, chapters and decoded page images; a separately compiled CS3 fixture checks Cloudstream provider loading, search, details, stream resolution and Referer preservation. The same test checks removal. A backup test rejects incomplete data without replacing existing state.
+## v0.3 results
 
-The player test starts the real PlayerActivity, decodes a public CC0 MP4, checks video dimensions and advancing position, and checks persisted resume position.
+Results below describe this update. Physical ARM64 hardware, every third-party site, DRM, all HLS/DASH variations, PiP and all subtitle/audio formats require additional device coverage.
 
-Assembler tests reject missing, duplicate, renamed, wrong-size and corrupted parts and verify shuffled parts reconstruct the original bytes. Final delivery is checked with apksigner and aapt.
+- Debug/test and ARM64 release compilation passed. Final release lint:0 errors,26 warnings.
+- Chapter/episode label test passed (source names, existing prefixes, fractional and unknown numbers).
+- v0.2→v0.3 x86_64 update installation passed without uninstall. Synthetic library title and playback position12345ms retained; old repository removed; Yuzono added. Comparison normalizes Gson's omitted optional null fields.
+- Release APK signature matches the delivered v0.2 certificate; version code increases2→3. aapt confirms ARM64 only, minAPI26,target35.
+- Offline assembler:3 behavioral tests passed. Below-limit APK delivered whole. Final four-part reconstruction is byte-identical and passes apksigner; browser reports complete APK ready.
+- RuntimeIntegrationTest:3/3 passed,124.854s on API30 x86_64 software emulator. Live signed AnimeOnsen14.10 and AnimePahe16.55 loaded, second-download certificate continuity checked, then removed. Live xkcd browse/details/chapter/page image decoded. Separate Aniyomi fixture exercised combined update, named episode, hoster stream, Referer and timestamps. Malformed-backup rejection passed. This proves host execution and fixture extraction; it does not assert live streaming from every Yuzono site.
+- PlayerIntegrationTest:1/1 passed,23.76s. Final PlayerActivity decoded a real MP4, reported nonzero video dimensions, advanced beyond500ms, and saved resume progress.
 
-Passing these checks is not universal source certification. Real websites, source-specific anti-bot/login behavior, HLS/DASH variants, DRM, and hardware behavior vary. ARM64 physical-device performance, PiP interactions and external subtitle selection require further device coverage.
-
-## Observed results (2026-10-20)
-
-- API30 x86_64 software emulator: RuntimeIntegrationTest **2/2 passed** (149.069s), including live xkcd APK signature verification, extension execution, decoded page image, separately compiled Cloudstream provider/search/detail/stream with Referer, removal, and malformed-backup rejection.
-- PlayerIntegrationTest **1/1 passed** (39.588s): real native MP4 decoding, advancing playback and saved resume position.
-- Final ARM64 assemble and Android lint passed: **0 errors, 22 warnings**. Warnings concern newer dependency versions, the deliberate ABI restriction and Compose/KTX guidance.
-- Offline assembler behavioral tests **3/3 passed**; final five-part APK reconstruction passed whole-file SHA-256 and Android v2 signature verification. Browser assembly also completed with a visible APK download.
-- The live-source test exposed an upstream legacy/modern manga-API dispatch bug; it was fixed and the full test then passed. An earlier attempt was interrupted during emulator service recovery; it is not counted as a pass.
-- Native visual automation was affected by emulator System UI ANRs. Hardware smoothness and the additional player flows listed above are not certified by these tests.
+- Final UI build/lint passed after viewport-aware hero spacing, artwork palette/parallax and mode-switch contrast adjustments. Engine/player passes reused because those inputs are unchanged. Final anime/manga screenshots inspected: mode/artwork/typography changed correctly, actions visible above navigation, no overlap. Snapshot helper was unreliable in software emulation; screenshots and Android input were used for visual verification.

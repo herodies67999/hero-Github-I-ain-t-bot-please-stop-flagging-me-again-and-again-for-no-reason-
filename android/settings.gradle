@@ -4,4 +4,4 @@ rootProject.name = 'Yoru'
 include ':app'
 
 include ":extension-runtime"
-include ':fixture-cloudstream'
+include ':fixture-aniyomi'

@@ -1,15 +1,15 @@
 # Yoru 夜
 
-Native Android anime and manga client with a cinematic Compose interface, a personal library, and dynamically installed Mihon/Cloudstream sources.
+Native Android anime and manga client with a cinematic Compose interface, a personal library, and dynamically installed Mihon/Aniyomi sources.
 
 ## Features
 
-- Anime/manga mode switch, editorial artwork, layered dark surfaces, ambient cover colors, parallax hero, dark/light/custom accent themes.
+- Anime/manga mode switch, editorial artwork, layered dark surfaces, distinct anime/manga accents, panoramic spotlights, dark/light/custom accent themes.
 - Source search, title details, chapter/episode lists, library, history and JSON backup/restore.
 - Keiyoushi protobuf repository, verified APK installation, updates and removal.
-- Cloudstream repository and CS3 plugin execution through the vendored runtime.
+- Yūzōnō / Aniyomi APK repository support, source factories, modern hoster extraction and source preferences.
 - Paged/webtoon manga reader, RTL, pinch zoom and progress.
-- Media3 player with HLS/DASH, source headers, track/speed controls, captions, picture-in-picture and resume.
+- Media3 player with HLS/DASH, source headers, track/speed controls, captions, external audio, opening/ending skips, picture-in-picture and resume.
 
 Install sources in Extensions, then open an installed source to browse or search. Editorial titles let you choose a source to search; artwork does not imply a bundled streaming catalog.
 
@@ -20,15 +20,15 @@ Requires JDK 17, Android SDK platform 36, and Node 20+ for APK delivery tooling.
 ```sh
 npm ci
 npm test
-npm run android -- artifacts/yoru-v0.2-arm64.apk
-npm run split -- artifacts/yoru-v0.2-arm64.apk artifacts/delivery 8
+npm run android -- artifacts/yoru-v0.3-arm64.apk
+npm run split -- artifacts/yoru-v0.3-arm64.apk artifacts/delivery 8
 ```
 
-The build produces one arm64-v8a debug-signed APK. Use your own signing configuration for a release; debug builds are not store releases. Never commit signing keys.
+The build produces one arm64-v8a release APK, signed with the existing development identity for continuity with v0.2. This is not a production store signing key. A fresh clone generates a different development key; preserve your own key securely for future updates. Never commit signing keys.
 
 ## Offline HTML APK assembler
 
-Download all .part files and assemble-yoru.html from the same build. Open the HTML in a modern browser, select every part (any order), then save the reconstructed APK. Each part and the complete APK are SHA-256 checked. No server or Android compiler runs in the browser.
+Only APKs above the 25 MB delivery limit are split. Download all .part files and assemble-yoru.html from the same build. Open the HTML in a modern browser, select every part (any order), then save the reconstructed APK. Each part and the complete APK are SHA-256 checked. No server or Android compiler runs in the browser.
 
 ## Runtime and source
 
@@ -36,4 +36,4 @@ The extension runtime is derived from [AnymeXExtensionRuntimeBridge](https://git
 
 ## Device integration tests
 
-The fixture-cloudstream module builds a separate test plugin (not included in the distributed app). RuntimeIntegrationTest installs the live signed xkcd extension, invokes browse/details/pages, and loads the separately compiled Cloudstream fixture to resolve a stream and headers. Device test setup and observed results are documented in docs/VALIDATION.md.
+The fixture-aniyomi module builds a separate test extension APK (not included in the distributed app). RuntimeIntegrationTest installs the live signed xkcd extension, invokes browse/details/pages, and loads the separately compiled Aniyomi fixture to resolve a stream and headers. Device test setup and observed results are documented in docs/VALIDATION.md.

@@ -59,9 +59,9 @@ interface AnimeCatalogueSource : AnimeSource {
         throw Exception("Stub!")
     }
 
-    override suspend fun getHosterList(episode: SEpisode): List<Hoster> = getHosterList(episode)
+    override suspend fun getHosterList(episode: SEpisode): List<Hoster> = throw UnsupportedOperationException("This source has no hoster API")
 
-    override suspend fun getVideoList(hoster: Hoster): List<Video> = getVideoList(hoster)
+    override suspend fun getVideoList(hoster: Hoster): List<Video> = throw UnsupportedOperationException("This source has no hoster API")
 
     @Deprecated(
         "Use the non-RxJava API instead",

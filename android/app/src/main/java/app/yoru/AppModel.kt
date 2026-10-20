@@ -243,7 +243,7 @@ class AppModel(application: Application) : AndroidViewModel(application) {
         context.startActivity(
             Intent(context, PlayerActivity::class.java)
                 .putExtra("stream", Gson().toJson(stream))
-                .putExtra("title", pair.first.title + " · " + pair.second.name)
+                .putExtra("title", pair.first.title + " · " + pair.second.label(false))
                 .putExtra("progressKey", "${pair.first.key}:${pair.second.url}")
                 .putExtra("position", progress)
         )

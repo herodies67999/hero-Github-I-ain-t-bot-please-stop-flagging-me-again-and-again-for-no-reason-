@@ -14,12 +14,7 @@ import kotlinx.coroutines.withContext
 class SourcePreferencesActivity : AppCompatActivity() {
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        if (intent.getStringExtra("type") == "cloudstream") {
-            if (!RuntimeBridge.csOpenSettings(this, intent.getStringExtra("source").orEmpty())) {
-                Toast.makeText(this, "This plugin has no settings", Toast.LENGTH_LONG).show()
-                finish()
-            }
-        } else if (state == null) {
+        if (state == null) {
             supportFragmentManager
                 .beginTransaction()
                 .replace(android.R.id.content, SourcePreferencesFragment())
@@ -33,7 +28,12 @@ class SourcePreferencesFragment : PreferenceFragmentCompat() {
         val source = requireActivity().intent.getStringExtra("source").orEmpty()
         preferenceManager.sharedPreferencesName = "source_$source"
         preferenceScreen = preferenceManager.createPreferenceScreen(requireContext())
-        val entries = RuntimeBridge.aniyomiGetPreference(requireContext(), source, false)
+        val entries =
+            RuntimeBridge.aniyomiGetPreference(
+                requireContext(),
+                source,
+                requireActivity().intent.getStringExtra("type") == "aniyomi",
+            )
         if (entries.isEmpty())
             preferenceScreen.addPreference(
                 Preference(requireContext()).apply { title = "This source has no settings" }

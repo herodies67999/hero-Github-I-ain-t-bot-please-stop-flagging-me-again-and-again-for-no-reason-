@@ -2,7 +2,6 @@
 
 package app.yoru
 
-import android.graphics.drawable.BitmapDrawable
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,14 +29,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
-private val Ink = Color(0xFF0B0911)
-private val Panel = Color(0xFF19151F)
+private val Ink = Color(0xFF090D13)
+private val Panel = Color(0xFF151D28)
 private val Muted = Color(0xFFA39AAE)
 private val Lilac = Color(0xFFC2A5FF)
 private val Editorial = FontFamily(Font(R.font.manrope))
@@ -45,7 +43,13 @@ private val Editorial = FontFamily(Font(R.font.manrope))
 @Composable
 fun YoruApp(model: AppModel) {
     val light = model.user.theme == "light"
-    val accent = Color(model.user.accent)
+    val accent =
+        if (model.user.theme == "custom") Color(model.user.accent)
+        else if (model.user.mode == "manga") {
+            if (light) Color(0xFF805423) else Color(0xFFF3C993)
+        } else {
+            if (light) Color(0xFF24685E) else Color(0xFFA8DDD5)
+        }
     val colors =
         if (light)
             lightColorScheme(
@@ -197,7 +201,7 @@ fun YoruApp(model: AppModel) {
                         )
                         Text(
                             if (p.signer.isNotEmpty()) "APK signature verified. Signer:"
-                            else "Cloudstream plugins do not provide APK signing. Package SHA-256:",
+                            else "Extension certificate and package SHA-256:",
                             modifier = Modifier.padding(top = 12.dp),
                         )
                         Text(
@@ -281,7 +285,7 @@ private fun BottomNavigation(model: AppModel) {
             .padding(horizontal = 20.dp, vertical = 10.dp)
     ) {
         Surface(
-            shape = RoundedCornerShape(26.dp),
+            shape = RoundedCornerShape(22.dp),
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .97f),
             tonalElevation = 8.dp,
             shadowElevation = 20.dp,
@@ -301,6 +305,11 @@ private fun BottomNavigation(model: AppModel) {
                         val selected = model.screen == id
                         Column(
                             Modifier.clip(RoundedCornerShape(18.dp))
+                                .background(
+                                    if (selected)
+                                        MaterialTheme.colorScheme.primary.copy(alpha = .12f)
+                                    else Color.Transparent
+                                )
                                 .clickable { model.screen = id }
                                 .padding(horizontal = 17.dp, vertical = 7.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -368,17 +377,23 @@ private fun Heading(kicker: String, title: String, action: (@Composable () -> Un
 }
 
 @Composable
-private fun ModeSwitch(model: AppModel) {
+private fun ModeSwitch(model: AppModel, onArtwork: Boolean = false) {
     Row(
         Modifier.clip(RoundedCornerShape(30.dp))
-            .background(Color.White.copy(alpha = .07f))
+            .background(
+                if (onArtwork) Ink.copy(alpha = .78f)
+                else MaterialTheme.colorScheme.primary.copy(alpha = .09f)
+            )
             .padding(4.dp)
     ) {
         listOf(false to "Anime", true to "Manga").forEach { (manga, label) ->
             val selected = (model.user.mode == "manga") == manga
             Row(
                 Modifier.clip(RoundedCornerShape(24.dp))
-                    .background(if (selected) Color.White.copy(alpha = .15f) else Color.Transparent)
+                    .background(
+                        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = .16f)
+                        else Color.Transparent
+                    )
                     .clickable { model.mode(manga) }
                     .padding(horizontal = 17.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -387,11 +402,16 @@ private fun ModeSwitch(model: AppModel) {
                     if (manga) Icons.AutoMirrored.Rounded.MenuBook else Icons.Rounded.PlayArrow,
                     null,
                     Modifier.size(15.dp),
-                    tint = if (selected) Lilac else Muted,
+                    tint =
+                        if (selected) MaterialTheme.colorScheme.primary
+                        else if (onArtwork) Color(0xFFD5DCE2) else Muted,
                 )
                 Text(
                     label,
-                    color = if (selected) Color.White else Muted,
+                    color =
+                        if (selected) {
+                            if (onArtwork) Color.White else MaterialTheme.colorScheme.onSurface
+                        } else if (onArtwork) Color(0xFFD5DCE2) else Muted,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(start = 7.dp),
                 )
@@ -403,295 +423,167 @@ private fun ModeSwitch(model: AppModel) {
 @Composable
 private fun DiscoverScreen(model: AppModel) {
     val list = rememberLazyListState()
-    val heroHeight = (androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp - 155).coerceIn(480, 650).dp
     val manga = model.user.mode == "manga"
     val items = model.editorial
-    val hero = items.firstOrNull() ?: return
-    var ambient by remember(hero.key) { mutableStateOf(Color(0xFF47305E)) }
-    LazyColumn(
-        state = list,
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 20.dp),
-    ) {
-        item {
-            Box(Modifier.fillMaxWidth().height(heroHeight).clipToBounds().background(ambient)) {
-                AsyncImage(
-                    hero.cover,
-                    "${hero.title} key art",
-                    contentScale = ContentScale.Crop,
-                    modifier =
-                        Modifier.fillMaxSize().graphicsLayer {
-                            translationY = list.firstVisibleItemScrollOffset * .17f
-                            scaleX = 1.04f
-                            scaleY = 1.04f
-                        },
-                    onSuccess = { result ->
-                        (result.result.drawable as? BitmapDrawable)?.bitmap?.let { bitmap ->
-                            Palette.from(bitmap).generate { palette ->
-                                palette?.getDarkMutedColor(0xFF47305E.toInt())?.let {
-                                    ambient = Color(it)
-                                }
-                            }
-                        }
-                    },
-                )
-                Box(
-                    Modifier.fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    Ink.copy(alpha = .45f),
-                                    Color.Transparent,
-                                    Ink.copy(alpha = .35f),
-                                    Ink,
-                                ),
-                                startY = 0f,
-                            )
-                        )
-                )
-                Box(
-                    Modifier.fillMaxSize()
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(Ink.copy(alpha = .35f), Color.Transparent)
-                            )
-                        )
-                )
-                Column(Modifier.fillMaxWidth().statusBarsPadding().padding(24.dp)) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "yoru",
-                            fontFamily = Editorial,
-                            fontSize = 27.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White,
-                            letterSpacing = (-1).sp,
-                        )
-                        Text(
-                            "夜",
-                            fontSize = 18.sp,
-                            color = Lilac,
-                            modifier = Modifier.padding(start = 7.dp),
-                        )
-                        Spacer(Modifier.weight(1f))
-                        IconButton(onClick = { model.screen = "extensions" }) {
-                            Icon(Icons.Rounded.Search, "Search sources", tint = Color.White)
-                        }
-                    }
-                    Spacer(Modifier.height(17.dp))
-                    ModeSwitch(model)
-                }
-                Column(
-                    Modifier.align(Alignment.BottomStart)
-                        .padding(horizontal = 27.dp)
-                        .padding(bottom = 28.dp)
+    if (items.isEmpty()) return
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val heroHeight = maxHeight.coerceAtLeast(570.dp)
+        LazyColumn(
+            state = list,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 20.dp),
+        ) {
+            item { CinemaHero(model, items.take(5), manga, list, heroHeight) }
+            item {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 18.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Surface(
-                        color = Lilac.copy(alpha = .14f),
-                        shape = RoundedCornerShape(7.dp),
-                        border = BorderStroke(1.dp, Lilac.copy(alpha = .3f)),
-                    ) {
+                    Column {
+                        Eyebrow(if (manga) "YOUR PERSONAL READING ROOM" else "YOUR PRIVATE CINEMA")
                         Text(
-                            if (manga) "THE READING ROOM" else "TONIGHT’S SPOTLIGHT",
-                            color = Color(0xFFE0D0FF),
-                            fontSize = 9.sp,
-                            letterSpacing = 1.8.sp,
-                            modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
+                            if (manga) "Between the panels." else "Make tonight a story.",
+                            fontFamily = Editorial,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp),
                         )
                     }
-                    Text(
-                        if (hero.editorialId == 154587) "Beyond the\njourney." else hero.title,
-                        fontFamily = Editorial,
-                        fontSize = 44.sp,
-                        lineHeight = 48.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = (-2).sp,
-                        color = Color.White,
-                        modifier = Modifier.padding(top = 18.dp),
-                    )
-                    Row(
-                        Modifier.padding(top = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            Icons.Rounded.Star,
-                            null,
-                            tint = Color(0xFFFFD68A),
-                            modifier = Modifier.size(14.dp),
-                        )
-                        Text(
-                            " ${hero.score}   ·   ${hero.genres.take(2).joinToString(" / ")}",
-                            color = Color(0xFFD0C4DA),
-                            fontSize = 11.sp,
-                        )
+                }
+            }
+            val history = model.user.history.filter { it.reader == manga }.take(5)
+            if (history.isNotEmpty()) {
+                item {
+                    Column(Modifier.padding(horizontal = 24.dp)) {
+                        Heading("RIGHT WHERE YOU LEFT OFF", "Your next chapter")
                     }
-                    Text(
-                        if (hero.editorialId == 154587)
-                            "Some stories begin when the adventure ends."
-                        else hero.description.take(105).substringBeforeLast(' ') + "…",
-                        color = Color(0xFFB9AEC5),
-                        fontSize = 12.sp,
-                        lineHeight = 19.sp,
-                        modifier = Modifier.padding(top = 12.dp, bottom = 22.dp),
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                }
+                item {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 24.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        Primary(
-                            if (manga) "Find chapters" else "Find episodes",
-                            if (manga) Icons.AutoMirrored.Rounded.MenuBook
-                            else Icons.Rounded.PlayArrow,
-                        ) {
-                            model.open(hero)
-                        }
-                        OutlinedIconButton(
-                            onClick = { model.saveTitle(hero) },
-                            shape = RoundedCornerShape(15.dp),
-                            modifier = Modifier.size(49.dp),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = .22f)),
-                        ) {
-                            Icon(
-                                if (model.user.library.any { it.key == hero.key })
-                                    Icons.Rounded.Bookmark
-                                else Icons.Rounded.BookmarkBorder,
-                                "Save title",
-                                tint = Color.White,
-                            )
+                        items(history) { progress ->
+                            Surface(
+                                Modifier.width(285.dp).clickable {
+                                    model.playOrRead(progress.media, progress.episode)
+                                },
+                                shape = RoundedCornerShape(18.dp),
+                                color = Panel,
+                            ) {
+                                Row(
+                                    Modifier.padding(12.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                                ) {
+                                    AsyncImage(
+                                        progress.media.cover,
+                                        null,
+                                        Modifier.size(60.dp, 83.dp).clip(RoundedCornerShape(9.dp)),
+                                        contentScale = ContentScale.Crop,
+                                    )
+                                    Column(Modifier.weight(1f).padding(top = 5.dp)) {
+                                        Text(
+                                            progress.media.title,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            fontSize = 14.sp,
+                                        )
+                                        Text(
+                                            progress.episode.label(progress.reader),
+                                            maxLines = 1,
+                                            fontSize = 11.sp,
+                                            color = Muted,
+                                            modifier = Modifier.padding(vertical = 8.dp),
+                                        )
+                                        Text(
+                                            if (progress.reader) "Page ${progress.position+1}"
+                                            else "Resume · ${progress.position/60000} min",
+                                            fontSize = 10.sp,
+                                            color = Lilac,
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-        val history = model.user.history.filter { it.reader == manga }.take(5)
-        if (history.isNotEmpty()) {
             item {
                 Column(Modifier.padding(horizontal = 24.dp)) {
-                    Heading("RIGHT WHERE YOU LEFT OFF", "Your next chapter")
+                    Heading(
+                        "THE EDITOR’S SHELF",
+                        if (manga) "Stories worth keeping" else "Worth the late night",
+                    ) {
+                        Icon(Icons.Rounded.NorthEast, null, tint = Lilac)
+                    }
                 }
             }
             item {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    items(history) { progress ->
-                        Surface(
-                            Modifier.width(285.dp).clickable {
-                                model.playOrRead(progress.media, progress.episode)
-                            },
-                            shape = RoundedCornerShape(18.dp),
-                            color = Panel,
-                        ) {
-                            Row(
-                                Modifier.padding(12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                            ) {
-                                AsyncImage(
-                                    progress.media.cover,
-                                    null,
-                                    Modifier.size(60.dp, 83.dp).clip(RoundedCornerShape(9.dp)),
-                                    contentScale = ContentScale.Crop,
-                                )
-                                Column(Modifier.weight(1f).padding(top = 5.dp)) {
-                                    Text(
-                                        progress.media.title,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        fontSize = 14.sp,
-                                    )
-                                    Text(
-                                        progress.episode.name,
-                                        maxLines = 1,
-                                        fontSize = 11.sp,
-                                        color = Muted,
-                                        modifier = Modifier.padding(vertical = 8.dp),
-                                    )
-                                    Text(
-                                        if (progress.reader) "Page ${progress.position+1}"
-                                        else "Resume · ${progress.position/60000} min",
-                                        fontSize = 10.sp,
-                                        color = Lilac,
-                                    )
-                                }
-                            }
+                    items(items.drop(1)) { media ->
+                        Poster(media, Modifier.width(164.dp)) { model.open(media) }
+                    }
+                }
+            }
+            item {
+                Column(Modifier.padding(horizontal = 24.dp)) {
+                    Heading("YOUR DOORS TO DISCOVERY", "From your sources") {
+                        TextButton(onClick = { model.screen = "extensions" }) {
+                            Text("Manage", fontSize = 11.sp)
                         }
                     }
                 }
             }
-        }
-        item {
-            Column(Modifier.padding(horizontal = 24.dp)) {
-                Heading("CURATED WORLDS", "Stay a little longer.") {
-                    Icon(Icons.Rounded.NorthEast, null, tint = Lilac)
-                }
-            }
-        }
-        item {
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                items(items.drop(1)) { media ->
-                    Poster(media, Modifier.width(153.dp)) { model.open(media) }
-                }
-            }
-        }
-        item {
-            Column(Modifier.padding(horizontal = 24.dp)) {
-                Heading("YOUR DOORS TO DISCOVERY", "From your sources") {
-                    TextButton(onClick = { model.screen = "extensions" }) {
-                        Text("Manage", fontSize = 11.sp)
+            val sources = model.sources.filter { it.manga == manga }
+            if (sources.isEmpty())
+                item {
+                    Surface(
+                        Modifier.padding(horizontal = 24.dp).fillMaxWidth(),
+                        shape = RoundedCornerShape(22.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        border =
+                            BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = .12f)),
+                    ) {
+                        Column(Modifier.padding(23.dp)) {
+                            Icon(
+                                Icons.Rounded.Extension,
+                                null,
+                                tint = Lilac,
+                                modifier = Modifier.size(28.dp),
+                            )
+                            Text(
+                                "A whole world. Your choice.",
+                                fontSize = 20.sp,
+                                fontFamily = Editorial,
+                                modifier = Modifier.padding(top = 17.dp),
+                            )
+                            Text(
+                                "Add a ${if(manga)"Mihon" else "Aniyomi"} repository to browse and ${if(manga)"read" else "watch"} from your own sources.",
+                                fontSize = 12.sp,
+                                color = Muted,
+                                lineHeight = 19.sp,
+                                modifier = Modifier.padding(vertical = 12.dp),
+                            )
+                            Primary("Explore extensions") { model.screen = "extensions" }
+                        }
                     }
                 }
-            }
-        }
-        val sources = model.sources.filter { it.manga == manga }
-        if (sources.isEmpty())
+            else
+                items(sources) { s ->
+                    Box(Modifier.padding(horizontal = 24.dp)) { SourceRow(s) { model.browse(s) } }
+                }
             item {
-                Surface(
-                    Modifier.padding(horizontal = 24.dp).fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    border =
-                        BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = .12f)),
-                ) {
-                    Column(Modifier.padding(23.dp)) {
-                        Icon(
-                            Icons.Rounded.Extension,
-                            null,
-                            tint = Lilac,
-                            modifier = Modifier.size(28.dp),
-                        )
-                        Text(
-                            "A whole world. Your choice.",
-                            fontSize = 20.sp,
-                            fontFamily = Editorial,
-                            modifier = Modifier.padding(top = 17.dp),
-                        )
-                        Text(
-                            "Add a ${if(manga)"Mihon" else "Cloudstream"} repository to browse and ${if(manga)"read" else "watch"} from your own sources.",
-                            fontSize = 12.sp,
-                            color = Muted,
-                            lineHeight = 19.sp,
-                            modifier = Modifier.padding(vertical = 12.dp),
-                        )
-                        Primary("Explore extensions") { model.screen = "extensions" }
-                    }
-                }
+                Text(
+                    "A universe of stories. A space of your own.",
+                    fontSize = 10.sp,
+                    color = Muted,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(35.dp),
+                )
             }
-        else
-            items(sources) { s ->
-                Box(Modifier.padding(horizontal = 24.dp)) { SourceRow(s) { model.browse(s) } }
-            }
-        item {
-            Text(
-                "A universe of stories. A space of your own.",
-                fontSize = 10.sp,
-                color = Muted,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(35.dp),
-            )
         }
     }
 }
@@ -757,7 +649,7 @@ private fun SourceRow(source: Source, onClick: () -> Unit) {
         headlineContent = { Text(source.name, fontWeight = FontWeight.SemiBold, fontSize = 14.sp) },
         supportingContent = {
             Text(
-                "${source.lang.uppercase()} · ${if(source.manga)"Mihon" else "Cloudstream"}",
+                "${source.lang.uppercase()} · ${if(source.manga)"Mihon" else "Aniyomi"}",
                 fontSize = 11.sp,
                 color = Muted,
             )
@@ -872,6 +764,8 @@ private fun BrowseScreen(model: AppModel) {
 
 @Composable
 private fun LibraryScreen(model: AppModel) {
+    var query by remember { mutableStateOf("") }
+    var alphabetical by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 24.dp)) {
         Heading("KEEP WHAT MOVES YOU", "Your library.") {
             IconButton(onClick = { model.screen = "history" }) {
@@ -879,12 +773,37 @@ private fun LibraryScreen(model: AppModel) {
             }
         }
         ModeSwitch(model)
-        Spacer(Modifier.height(22.dp))
+        OutlinedTextField(
+            query,
+            { query = it },
+            singleLine = true,
+            placeholder = { Text("Search your collection") },
+            leadingIcon = { Icon(Icons.Rounded.Search, null) },
+            trailingIcon = {
+                IconButton(onClick = { alphabetical = !alphabetical }) {
+                    Icon(
+                        Icons.Rounded.SortByAlpha,
+                        if (alphabetical) "Sort by recently saved" else "Sort by title",
+                    )
+                }
+            },
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 18.dp),
+        )
         val list =
-            model.user.library.filter {
-                it.source?.manga?.let { m -> m == (model.user.mode == "manga") }
-                    ?: model.editorial.any { e -> e.editorialId == it.editorialId }
-            }
+            model.user.library
+                .filter {
+                    it.source?.manga?.let { m -> m == (model.user.mode == "manga") }
+                        ?: model.editorial.any { e -> e.editorialId == it.editorialId }
+                }
+                .filter { it.title.contains(query, true) }
+                .let { if (alphabetical) it.sortedBy { t -> t.title.lowercase() } else it }
+        Text(
+            "${list.size} titles  /  ${if (alphabetical) "A–Z" else "Saved collection"}",
+            color = Muted,
+            fontSize = 11.sp,
+            modifier = Modifier.padding(bottom = 16.dp),
+        )
         if (list.isEmpty())
             EmptyState(
                 "Make room for a favorite.",
@@ -915,7 +834,7 @@ private fun HistoryScreen(model: AppModel) {
                 },
                 supportingContent = {
                     Text(
-                        "${p.episode.name}\n${if(p.reader)"Page ${p.position+1}" else "${p.position/60000} min"}",
+                        "${p.episode.label(p.reader)}\n${if(p.reader)"Page ${p.position+1}" else "${p.position/60000} min"}",
                         fontSize = 11.sp,
                     )
                 },
@@ -1230,7 +1149,7 @@ private fun ExtensionsScreen(model: AppModel) {
     }
     if (add) {
         var url by remember { mutableStateOf("") }
-        var type by remember { mutableStateOf("cloudstream") }
+        var type by remember { mutableStateOf("aniyomi") }
         AlertDialog(
             onDismissRequest = { add = false },
             title = { Text("A new door opens.") },
@@ -1244,9 +1163,9 @@ private fun ExtensionsScreen(model: AppModel) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(type == "mihon", { type = "mihon" }, label = { Text("Mihon") })
                         FilterChip(
-                            type == "cloudstream",
-                            { type = "cloudstream" },
-                            label = { Text("Cloudstream") },
+                            type == "aniyomi",
+                            { type = "aniyomi" },
+                            label = { Text("Aniyomi") },
                         )
                     }
                     OutlinedTextField(
@@ -1312,11 +1231,11 @@ private fun DetailScreen(model: AppModel, detail: Detail) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
         LazyColumn(contentPadding = PaddingValues(bottom = 30.dp)) {
             item {
-                Box(Modifier.fillMaxWidth().height(360.dp)) {
+                Box(Modifier.fillMaxWidth().height(420.dp)) {
                     AsyncImage(
                         media.cover,
                         null,
-                        Modifier.fillMaxSize().blur(25.dp),
+                        Modifier.fillMaxSize().blur(12.dp),
                         contentScale = ContentScale.Crop,
                     )
                     Box(
@@ -1341,8 +1260,8 @@ private fun DetailScreen(model: AppModel, detail: Detail) {
                         AsyncImage(
                             media.cover,
                             media.title,
-                            Modifier.width(120.dp)
-                                .height(178.dp)
+                            Modifier.width(132.dp)
+                                .height(196.dp)
                                 .shadow(20.dp, RoundedCornerShape(15.dp))
                                 .clip(RoundedCornerShape(15.dp)),
                             contentScale = ContentScale.Crop,
@@ -1385,10 +1304,23 @@ private fun DetailScreen(model: AppModel, detail: Detail) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         if (detail.episodes.isNotEmpty())
                             Primary(
-                                if (media.source?.manga == true) "Start reading" else "Watch now",
+                                if (model.user.history.any { it.media.key == media.key }) "Continue"
+                                else if (media.source?.manga == true) "Start reading"
+                                else "Watch now",
                                 Icons.Rounded.PlayArrow,
                             ) {
-                                model.playOrRead(media, detail.episodes.last())
+                                val last =
+                                    model.user.history.firstOrNull { it.media.key == media.key }
+                                model.playOrRead(
+                                    media,
+                                    detail.episodes.firstOrNull { it.url == last?.episode?.url }
+                                        ?: detail.episodes.minByOrNull {
+                                            (it.raw["episode_number"] as? Number)
+                                                ?.toDouble()
+                                                ?.takeIf { n -> n >= 0 } ?: Double.MAX_VALUE
+                                        }
+                                        ?: detail.episodes.last(),
+                                )
                             }
                         OutlinedButton(
                             onClick = { model.saveTitle(media) },
@@ -1445,20 +1377,34 @@ private fun DetailScreen(model: AppModel, detail: Detail) {
             }
             val episodes =
                 detail.episodes
-                    .filter { it.name.contains(episodeFilter, true) }
+                    .filter { it.label(media.source?.manga == true).contains(episodeFilter, true) }
                     .let { if (reverse) it.reversed() else it }
             items(episodes, key = { it.url }) { ep ->
                 val progress = model.user.history.find { it.key == "${media.key}:${ep.url}" }
                 ListItem(
                     headlineContent = {
                         Text(
-                            ep.name,
+                            ep.label(media.source?.manga == true),
                             fontSize = 13.sp,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
                     },
                     supportingContent = {
+                        if (progress == null)
+                            Text(
+                                listOf(ep.raw.s("scanlator"), ep.raw.s("description"))
+                                    .filter { it.isNotBlank() }
+                                    .joinToString(" · ")
+                                    .ifBlank {
+                                        if (media.source?.manga == true) "Read chapter"
+                                        else "Choose stream"
+                                    },
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = Muted,
+                            )
                         if (progress != null)
                             Text(
                                 if (progress.reader) "Resume · page ${progress.position+1}"
@@ -1478,9 +1424,10 @@ private fun DetailScreen(model: AppModel, detail: Detail) {
                     trailingContent = { Icon(Icons.Rounded.ChevronRight, null, tint = Muted) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     modifier =
-                        Modifier.padding(horizontal = 10.dp).clickable {
-                            model.playOrRead(media, ep)
-                        },
+                        Modifier.padding(horizontal = 18.dp, vertical = 4.dp)
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f))
+                            .clickable { model.playOrRead(media, ep) },
                 )
             }
         }
@@ -1489,8 +1436,16 @@ private fun DetailScreen(model: AppModel, detail: Detail) {
 
 @Composable
 private fun ReaderScreen(model: AppModel, reading: Reading) {
-    var webtoon by remember { mutableStateOf(false) }
-    var rtl by remember { mutableStateOf(true) }
+    val readerPrefs =
+        LocalContext.current.getSharedPreferences(
+            "reader_preferences",
+            android.content.Context.MODE_PRIVATE,
+        )
+    var webtoon by remember { mutableStateOf(readerPrefs.getBoolean("webtoon", false)) }
+    var rtl by remember { mutableStateOf(readerPrefs.getBoolean("rtl", true)) }
+    LaunchedEffect(webtoon, rtl) {
+        readerPrefs.edit().putBoolean("webtoon", webtoon).putBoolean("rtl", rtl).apply()
+    }
     var controls by remember { mutableStateOf(true) }
     val pager = rememberPagerState(initialPage = reading.start, pageCount = { reading.pages.size })
     val list = rememberLazyListState(initialFirstVisibleItemIndex = reading.start)
@@ -1600,7 +1555,7 @@ private fun ReaderScreen(model: AppModel, reading: Reading) {
                                     fontSize = 13.sp,
                                 )
                                 Text(
-                                    reading.episode.name,
+                                    reading.episode.label(true),
                                     fontSize = 10.sp,
                                     color = Muted,
                                     maxLines = 1,
@@ -1608,9 +1563,27 @@ private fun ReaderScreen(model: AppModel, reading: Reading) {
                             }
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            FilterChip(!webtoon, { webtoon = false }, label = { Text("Paged") })
+                            FilterChip(
+                                !webtoon,
+                                {
+                                    scope.launch {
+                                        pager.scrollToPage(list.firstVisibleItemIndex)
+                                        webtoon = false
+                                    }
+                                },
+                                label = { Text("Paged") },
+                            )
                             Spacer(Modifier.width(9.dp))
-                            FilterChip(webtoon, { webtoon = true }, label = { Text("Webtoon") })
+                            FilterChip(
+                                webtoon,
+                                {
+                                    scope.launch {
+                                        list.scrollToItem(pager.currentPage)
+                                        webtoon = true
+                                    }
+                                },
+                                label = { Text("Webtoon") },
+                            )
                             Spacer(Modifier.width(9.dp))
                             FilterChip(
                                 rtl,
@@ -1637,6 +1610,43 @@ private fun ReaderScreen(model: AppModel, reading: Reading) {
                             color = Color.White,
                             fontSize = 12.sp,
                         )
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    scope.launch {
+                                        if (webtoon)
+                                            list.animateScrollToItem((current - 1).coerceAtLeast(0))
+                                        else
+                                            pager.animateScrollToPage(
+                                                (current - 1).coerceAtLeast(0)
+                                            )
+                                    }
+                                },
+                                enabled = current > 0,
+                            ) {
+                                Text("Previous page")
+                            }
+                            TextButton(
+                                onClick = {
+                                    scope.launch {
+                                        if (webtoon)
+                                            list.animateScrollToItem(
+                                                (current + 1).coerceAtMost(reading.pages.lastIndex)
+                                            )
+                                        else
+                                            pager.animateScrollToPage(
+                                                (current + 1).coerceAtMost(reading.pages.lastIndex)
+                                            )
+                                    }
+                                },
+                                enabled = current < reading.pages.lastIndex,
+                            ) {
+                                Text("Next page")
+                            }
+                        }
                         if (reading.pages.size > 1)
                             Slider(
                                 current.toFloat(),
@@ -1756,7 +1766,7 @@ private fun SettingsScreen(model: AppModel) {
         item {
             Heading("OPEN BY DESIGN", "Made to be yours.")
             Text(
-                "Yoru 0.2 · Native Android\nMihon / Tachiyomi source APIs, Cloudstream providers & extractors, AnymeX Runtime Bridge, and AndroidX Media3.",
+                "Yoru 0.3 · Native Android\nMihon / Tachiyomi source APIs, Aniyomi source and hoster APIs, AnymeX Runtime Bridge, and AndroidX Media3.",
                 fontSize = 12.sp,
                 lineHeight = 21.sp,
                 color = Muted,
@@ -1788,11 +1798,235 @@ private fun SettingsScreen(model: AppModel) {
 }
 
 @Composable
-private fun ReaderImage(model: ImageRequest, contentDescription: String, modifier: Modifier = Modifier, contentScale: ContentScale) {
+private fun ReaderImage(
+    model: ImageRequest,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale,
+) {
     var attempt by remember(model.data) { mutableIntStateOf(0) }
     key(attempt) {
-        coil.compose.SubcomposeAsyncImage(model, contentDescription, modifier = modifier, contentScale = contentScale,
-            loading = { Box(Modifier.fillMaxWidth().heightIn(min = 180.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Lilac) } },
-            error = { Column(Modifier.fillMaxWidth().heightIn(min = 180.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) { Text("Page could not load", color = Color.White); TextButton(onClick = { attempt++ }) { Text("Retry") } } })
+        coil.compose.SubcomposeAsyncImage(
+            model,
+            contentDescription,
+            modifier = modifier,
+            contentScale = contentScale,
+            loading = {
+                Box(
+                    Modifier.fillMaxWidth().heightIn(min = 180.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(color = Lilac)
+                }
+            },
+            error = {
+                Column(
+                    Modifier.fillMaxWidth().heightIn(min = 180.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text("Page could not load", color = Color.White)
+                    TextButton(onClick = { attempt++ }) { Text("Retry") }
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun CinemaHero(
+    model: AppModel,
+    titles: List<Title>,
+    manga: Boolean,
+    scroll: LazyListState,
+    height: Dp,
+) {
+    var selected by remember(manga) { mutableIntStateOf(0) }
+    val media = titles.getOrNull(selected) ?: return
+    var ambient by remember(media.key) { mutableStateOf(Ink) }
+    val accent = MaterialTheme.colorScheme.primary
+    Box(Modifier.fillMaxWidth().height(height).clipToBounds().background(Ink)) {
+        AnimatedContent(
+            media,
+            transitionSpec = { fadeIn(tween(650)) togetherWith fadeOut(tween(450)) },
+            label = "Spotlight",
+        ) { title ->
+            Box(Modifier.fillMaxSize()) {
+                AsyncImage(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(title.banner)
+                        .allowHardware(false)
+                        .build(),
+                    "${title.title} panoramic artwork",
+                    Modifier.fillMaxSize().graphicsLayer {
+                        translationY =
+                            if (scroll.firstVisibleItemIndex == 0)
+                                scroll.firstVisibleItemScrollOffset * .12f
+                            else 0f
+                        scaleX = 1.04f
+                        scaleY = 1.04f
+                    },
+                    contentScale = ContentScale.Crop,
+                    onSuccess = { result ->
+                        (result.result.drawable as? android.graphics.drawable.BitmapDrawable)
+                            ?.bitmap
+                            ?.let { bitmap ->
+                                androidx.palette.graphics.Palette.from(bitmap).generate { palette ->
+                                    ambient =
+                                        Color(
+                                            palette?.getDarkMutedColor(0xFF172830.toInt())
+                                                ?: 0xFF172830.toInt()
+                                        )
+                                }
+                            }
+                    },
+                )
+                Box(
+                    Modifier.fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    Ink.copy(alpha = .65f),
+                                    Ink.copy(alpha = .35f),
+                                    ambient.copy(alpha = .85f),
+                                    Ink,
+                                )
+                            )
+                        )
+                )
+                Box(
+                    Modifier.fillMaxSize()
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(Ink.copy(alpha = .4f), Color.Transparent)
+                            )
+                        )
+                )
+            }
+        }
+        Column(Modifier.statusBarsPadding().padding(horizontal = 24.dp, vertical = 18.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "yoru",
+                    fontFamily = Editorial,
+                    fontSize = 32.sp,
+                    letterSpacing = (-2).sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White,
+                )
+                Text("  /  夜", color = accent, fontSize = 17.sp)
+                Spacer(Modifier.weight(1f))
+                Surface(
+                    color = Ink.copy(alpha = .55f),
+                    shape = CircleShape,
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = .12f)),
+                ) {
+                    IconButton(onClick = { model.screen = "extensions" }) {
+                        Icon(Icons.Rounded.Search, "Search sources", tint = Color.White)
+                    }
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+            ModeSwitch(model, onArtwork = true)
+        }
+        Column(
+            Modifier.align(Alignment.BottomStart)
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 22.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+            ) {
+                AsyncImage(
+                    media.cover,
+                    "${media.title} cover",
+                    Modifier.width(105.dp)
+                        .height(155.dp)
+                        .graphicsLayer { rotationZ = -4f }
+                        .shadow(24.dp, RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(1.dp, Color.White.copy(alpha = .25f), RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop,
+                )
+                Column(Modifier.weight(1f).padding(bottom = 5.dp)) {
+                    Text(
+                        if (manga) "THE MANGA EDIT" else "THE ANIME EDIT",
+                        color = accent,
+                        fontSize = 10.sp,
+                        letterSpacing = 2.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        "0${selected + 1} / 0${titles.size}",
+                        color = Color.White.copy(alpha = .5f),
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 14.dp),
+                    )
+                    Text(
+                        media.genres.take(2).joinToString("\n"),
+                        color = Color.White.copy(alpha = .8f),
+                        fontSize = 12.sp,
+                        lineHeight = 20.sp,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                    Text(
+                        "★ ${media.score}",
+                        color = Color(0xFFFFD897),
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+            Text(
+                media.title,
+                fontFamily = if (manga) FontFamily(Font(R.font.cormorant)) else Editorial,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 30.sp,
+                lineHeight = 34.sp,
+                letterSpacing = (-1).sp,
+                color = Color.White,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 23.dp),
+            )
+            Text(
+                media.description,
+                fontSize = 12.sp,
+                lineHeight = 19.sp,
+                color = Color(0xFFB9C4CF),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 9.dp, bottom = 18.dp),
+            )
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Primary(
+                    if (manga) "Find chapters" else "Find episodes",
+                    if (manga) Icons.AutoMirrored.Rounded.MenuBook else Icons.Rounded.PlayArrow,
+                ) {
+                    model.open(media)
+                }
+                OutlinedIconButton(
+                    onClick = { model.saveTitle(media) },
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = .2f)),
+                ) {
+                    Icon(
+                        if (model.user.library.any { it.key == media.key }) Icons.Rounded.Bookmark
+                        else Icons.Rounded.BookmarkBorder,
+                        "Save title",
+                        tint = Color.White,
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = { selected = (selected + 1) % titles.size }) {
+                    Icon(Icons.Rounded.ArrowForward, "Next spotlight", tint = Color.White)
+                }
+            }
+        }
     }
 }

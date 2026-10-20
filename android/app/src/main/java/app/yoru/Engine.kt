@@ -7,15 +7,12 @@ import com.android.apksig.ApkVerifier
 import com.anymex.runtimehost.RuntimeBridge
 import com.google.gson.Gson
 import com.google.gson.JsonParser
-import com.lagradost.cloudstream3.APIHolder
-import com.lagradost.cloudstream3.plugins.PluginManager
 import java.io.File
 import java.io.InputStream
 import java.net.URI
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
-import java.util.zip.ZipFile
 import kotlinx.serialization.protobuf.ProtoBuf
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -40,7 +37,7 @@ class Engine(private val context: Context) {
         private set
 
     private val mangaDir = File(context.filesDir, "exts_manga").apply { mkdirs() }
-    private val pluginDir = File(context.filesDir, "yoru_plugins").apply { mkdirs() }
+    private val pluginDir = File(context.filesDir, "exts").apply { mkdirs() }
     var loadErrors: List<String> = emptyList()
         private set
 
@@ -52,6 +49,18 @@ class Engine(private val context: Context) {
     }
 
     fun initialize() {
+        // Remove retired executable packages, while preserving saved titles and history.
+        File(context.filesDir, "yoru_plugins").deleteRecursively()
+        val repos = user.repos.filterNot { it.type == "cloudstream" }.toMutableList()
+        if (prefs.getInt("engine_version", 0) < 3 && repos.none { it.url == YUZONO })
+            repos.add(Repo("Yūzōnō", YUZONO, "aniyomi"))
+        save(
+            user.copy(
+                repos = repos,
+                installed = user.installed.filterNot { it.extension.type == "cloudstream" },
+            )
+        )
+        prefs.edit().putInt("engine_version", 3).apply()
         RuntimeBridge.initialize(context)
     }
 
@@ -60,8 +69,8 @@ class Engine(private val context: Context) {
         val errors = mutableListOf<String>()
         val trusted = user.installed.map { file(it).absolutePath }.toSet()
         // Never execute stray or modified packages copied into the store.
-        mangaDir
-            .listFiles()
+        listOf(mangaDir, pluginDir)
+            .flatMap { it.listFiles()?.toList().orEmpty() }
             ?.filter { it.extension == "apk" && it.absolutePath !in trusted }
             ?.forEach { it.renameTo(File(it.parentFile, it.name + ".quarantined")) }
         for (record in user.installed) {
@@ -87,35 +96,28 @@ class Engine(private val context: Context) {
                         it.s("iconUrl"),
                     )
                 }
-        for (record in user.installed.filter { it.extension.type == "cloudstream" }) {
-            val f = file(record)
-            if (f.exists() && !PluginManager.plugins.containsKey(f.absolutePath)) {
-                val ok =
-                    runCatching { RuntimeBridge.csLoadPlugin(context, f.absolutePath) }
-                        .getOrDefault(false)
-                if (!ok) errors.add("${record.extension.name}: plugin load failed")
-            }
-        }
-        val cloud =
-            RuntimeBridge.csGetRegisteredProviders().map {
-                Source(
-                    it.s("id"),
-                    it.s("name"),
-                    it.s("language"),
-                    "cloudstream",
-                    user.installed
-                        .firstOrNull { r -> file(r).absolutePath == it.s("plugin") }
-                        ?.extension
-                        ?.id ?: it.s("internalName"),
-                    it.s("iconUrl"),
-                )
-            }
-        for (record in user.installed.filter { it.extension.type == "mihon" }) if (
-            manga.none { it.packageId == record.extension.id }
+        val anime =
+            runCatching { RuntimeBridge.getInstalledAnimeExtensions(context) }
+                .getOrElse {
+                    errors.add("Anime runtime: ${it.message}")
+                    emptyList()
+                }
+                .map {
+                    Source(
+                        it.s("id"),
+                        it.s("name"),
+                        it.s("lang"),
+                        "aniyomi",
+                        it.s("pkgName"),
+                        it.s("iconUrl"),
+                    )
+                }
+        for (record in user.installed) if (
+            (manga + anime).none { it.packageId == record.extension.id }
         )
             errors.add("${record.extension.name}: no compatible sources loaded")
         loadErrors = errors.distinct()
-        return manga + cloud
+        return manga + anime
     }
 
     private fun file(record: Installed) =
@@ -156,41 +158,41 @@ class Engine(private val context: Context) {
                     )
                 }
         }
-        val root = JsonParser.parseString(bytes.decodeToString()).asJsonObject
-        val lists =
-            root.getAsJsonArray("pluginLists")
-                ?: error("Expected a Cloudstream repository JSON with pluginLists")
+        require(repo.type == "aniyomi") { "Unsupported repository type" }
+        val root = JsonParser.parseString(bytes.decodeToString())
+        require(root.isJsonArray) { "Expected an Aniyomi index.min.json repository" }
         val items =
-            lists.take(20).flatMap { list ->
-                JsonParser.parseString(
-                        download(resolve(repo.url, list.asString), 20 * 1024 * 1024)
-                            .decodeToString()
-                    )
-                    .asJsonArray
-                    .map { x ->
-                        val o = x.asJsonObject
-                        fun text(k: String): String {
-                            return o.get(k)?.takeUnless { it.isJsonNull }?.asString.orEmpty()
-                        }
-                        Extension(
-                            text("internalName").ifBlank { text("name") },
-                            text("name"),
-                            text("version"),
-                            text("version").toLongOrNull() ?: 0,
-                            https(text("url")),
-                            text("iconUrl"),
-                            text("language").ifBlank { "all" },
-                            "cloudstream",
-                            repo.url,
-                        )
-                    }
+            root.asJsonArray.map { x ->
+                val o = x.asJsonObject
+                fun text(k: String) = o.get(k)?.takeUnless { it.isJsonNull }?.asString.orEmpty()
+                require(text("apk").matches(Regex("[A-Za-z0-9_.-]+[.]apk"))) {
+                    "Invalid APK filename"
+                }
+                Extension(
+                    text("pkg"),
+                    text("name").removePrefix("Aniyomi: "),
+                    text("version"),
+                    o["code"].asLong,
+                    resolve(repo.url, "apk/" + text("apk")),
+                    resolve(repo.url, "icon/" + text("pkg") + ".png"),
+                    text("lang"),
+                    "aniyomi",
+                    repo.url,
+                    repo.signer,
+                    text("nsfw") == "1",
+                )
             }
-        return repo.copy(name = root.get("name")?.asString ?: repo.name) to
-            items.distinctBy { it.key }
+        return repo to items.distinctBy { it.key }
     }
 
     fun prepare(entry: Extension): PendingInstall {
-        val existing = user.installed.firstOrNull { it.extension.key == entry.key }
+        val existing =
+            user.installed.firstOrNull {
+                it.extension.id == entry.id && it.extension.type == entry.type
+            }
+        require(existing == null || existing.extension.repo == entry.repo) {
+            "Remove the installed extension before switching its repository"
+        }
         require(existing == null || entry.code >= existing.extension.code) {
             "Downgrades are not allowed"
         }
@@ -200,7 +202,7 @@ class Engine(private val context: Context) {
         try {
             val digest = sha(bytes)
             var signer = ""
-            if (entry.type == "mihon") {
+            if (entry.type in listOf("mihon", "aniyomi")) {
                 val verified = ApkVerifier.Builder(staging).build().verify()
                 require(verified.isVerified) { "APK signature verification failed" }
                 require(verified.signerCertificates.size == 1) { "Expected one extension signer" }
@@ -219,30 +221,12 @@ class Engine(private val context: Context) {
                     if (Build.VERSION.SDK_INT >= 28) info.longVersionCode
                     else @Suppress("DEPRECATION") info.versionCode.toLong()
                 require(code == entry.code) { "Version differs from repository index" }
-                require(info.reqFeatures?.any { it.name == "tachiyomi.extension" } == true) {
-                    "Not a Mihon manga extension"
+                val feature =
+                    if (entry.type == "mihon") "tachiyomi.extension" else "tachiyomi.animeextension"
+                require(info.reqFeatures?.any { it.name == feature } == true) {
+                    "Wrong extension API"
                 }
-            } else {
-                ZipFile(staging).use { zip ->
-                    require(zip.getEntry("classes.dex") != null) {
-                        "Plugin has no Android bytecode"
-                    }
-                    val manifest =
-                        zip.getEntry("manifest.json") ?: error("Missing Cloudstream manifest")
-                    require(manifest.size in 1..1_000_000) { "Invalid plugin manifest size" }
-                    val obj =
-                        JsonParser.parseString(
-                                zip.getInputStream(manifest).bufferedReader().readText()
-                            )
-                            .asJsonObject
-                    require(obj.get("pluginClassName")?.asString?.isNotBlank() == true) {
-                        "Missing plugin entry point"
-                    }
-                    require(obj.get("version")?.asLong == entry.code) {
-                        "Plugin version differs from repository index"
-                    }
-                }
-            }
+            } else error("Unsupported extension type")
             return PendingInstall(entry, staging.absolutePath, digest, signer)
         } catch (e: Throwable) {
             staging.delete()
@@ -261,8 +245,11 @@ class Engine(private val context: Context) {
         }
         val entry = pending.entry
         val previous = user
-        val existing = user.installed.firstOrNull { it.extension.key == entry.key }
-        val name = sha(entry.key.toByteArray()) + if (entry.type == "mihon") ".apk" else ".cs3"
+        val existing =
+            user.installed.firstOrNull {
+                it.extension.id == entry.id && it.extension.type == entry.type
+            }
+        val name = sha(entry.key.toByteArray()) + ".apk"
         val record = Installed(entry, name, pending.digest, pending.signer)
         val target = file(record)
         val backup = File(target.parentFile, "$name.backup")
@@ -278,14 +265,9 @@ class Engine(private val context: Context) {
                 )
             )
             val sources = installedSources()
-            if (entry.type == "mihon")
-                require(sources.any { it.packageId == entry.id }) {
-                    "Extension could not load against this host API"
-                }
-            else
-                require(PluginManager.plugins.containsKey(target.absolutePath)) {
-                    "Cloudstream plugin failed to initialize"
-                }
+            require(sources.any { it.packageId == entry.id }) {
+                "Extension could not load against this host API"
+            }
             backup.delete()
         } catch (e: Throwable) {
             unload(record)
@@ -299,12 +281,6 @@ class Engine(private val context: Context) {
 
     private fun unload(record: Installed?) {
         if (record == null) return
-        if (record.extension.type == "cloudstream") {
-            RuntimeBridge.csGetRegisteredProviders()
-                .filter { it.s("plugin") == file(record).absolutePath }
-                .forEach { RuntimeBridge.csUnloadPlugin(it.s("id")) }
-            PluginManager.unloadPlugin(file(record).absolutePath)
-        }
         RuntimeBridge.invalidateSourceCache()
     }
 
@@ -320,43 +296,13 @@ class Engine(private val context: Context) {
     }
 
     fun browse(source: Source, query: String, page: Int): Pair<List<Title>, Boolean> {
+        require(source.type in listOf("mihon", "aniyomi")) {
+            "This title used a retired source. Find it in an installed Aniyomi source to continue."
+        }
         val result =
-            if (source.manga) {
-                if (query.isBlank())
-                    RuntimeBridge.aniyomiGetPopular(context, source.id, false, page)
-                else RuntimeBridge.aniyomiSearch(context, source.id, false, query, page)
-            } else {
-                val provider =
-                    APIHolder.apis.firstOrNull { it.name == source.id }
-                        ?: error("Provider is no longer loaded")
-                if (query.isBlank() && provider.hasMainPage)
-                    kotlinx.coroutines.runBlocking {
-                        val response =
-                            provider.getMainPage(
-                                page,
-                                com.lagradost.cloudstream3.MainPageRequest(
-                                    provider.mainPage.first().name,
-                                    provider.mainPage.first().data,
-                                    provider.mainPage.first().horizontalImages,
-                                ),
-                            )
-                        mapOf(
-                            "list" to
-                                response
-                                    ?.items
-                                    ?.flatMap { it.list }
-                                    ?.map {
-                                        mapOf(
-                                            "title" to it.name,
-                                            "url" to it.url,
-                                            "cover" to it.posterUrl,
-                                        )
-                                    },
-                            "hasNextPage" to (response?.hasNext ?: false),
-                        )
-                    }
-                else RuntimeBridge.csSearch(context, query, source.id, page)
-            }
+            if (query.isBlank())
+                RuntimeBridge.aniyomiGetPopular(context, source.id, !source.manga, page)
+            else RuntimeBridge.aniyomiSearch(context, source.id, !source.manga, query, page)
         val list =
             result.maps("list").map {
                 Title(
@@ -371,19 +317,16 @@ class Engine(private val context: Context) {
 
     fun detail(title: Title): Detail {
         val source = title.source ?: error("Choose an installed source first")
+        require(source.type in listOf("mihon", "aniyomi")) {
+            "This saved title used a retired source. Your library is preserved; find the title in an Aniyomi source to continue."
+        }
         val result =
-            if (source.manga)
-                RuntimeBridge.aniyomiGetDetail(
-                    context,
-                    source.id,
-                    false,
-                    mapOf(
-                        "title" to title.title,
-                        "url" to title.url,
-                        "thumbnail_url" to title.cover,
-                    ),
-                )
-            else RuntimeBridge.csGetDetail(context, source.id, title.url)
+            RuntimeBridge.aniyomiGetDetail(
+                context,
+                source.id,
+                !source.manga,
+                mapOf("title" to title.title, "url" to title.url, "thumbnail_url" to title.cover),
+            )
         result["error"]?.let { error(it.toString()) }
         val media =
             title.copy(
@@ -409,14 +352,27 @@ class Engine(private val context: Context) {
 
     fun streams(media: Title, episode: Episode): List<Stream> {
         val source = media.source ?: error("Missing source")
-        return RuntimeBridge.csGetVideoList(context, source.id, episode.url)
+        return RuntimeBridge.aniyomiGetVideoList(
+                context,
+                source.id,
+                true,
+                episode.raw + mapOf("name" to episode.name, "url" to episode.url),
+            )
             .map {
                 Stream(
                     it.s("url"),
                     it.s("title").ifBlank { it.s("quality") },
                     it.stringMap("headers"),
                     it.maps("subtitles").map { s -> Subtitle(s.s("file"), s.s("label")) },
-                    it["isM3u8"] == true,
+                    it.s("url").substringBefore("?").endsWith(".m3u8", true),
+                    it.maps("audios").map { t -> Subtitle(t.s("file"), t.s("label")) },
+                    it.maps("timestamps").map { t ->
+                        Segment(
+                            (t["start"] as? Number)?.toDouble() ?: 0.0,
+                            (t["end"] as? Number)?.toDouble() ?: 0.0,
+                            t.s("name"),
+                        )
+                    },
                 )
             }
             .filter { it.url.startsWith("https://") || it.url.startsWith("http://") }
@@ -451,14 +407,26 @@ class Engine(private val context: Context) {
     fun restore(text: String) {
         require(text.length < 4_000_000)
         val tree = JsonParser.parseString(text)
-        require(tree.isJsonObject && listOf("library", "history", "repos", "mode", "theme", "accent").all { tree.asJsonObject.has(it) && !tree.asJsonObject[it].isJsonNull }) { "Incomplete backup" }
+        require(
+            tree.isJsonObject &&
+                listOf("library", "history", "repos", "mode", "theme", "accent").all {
+                    tree.asJsonObject.has(it) && !tree.asJsonObject[it].isJsonNull
+                }
+        ) {
+            "Incomplete backup"
+        }
         val restored = gson.fromJson(tree, UserState::class.java) ?: error("Invalid backup")
         validateState(restored)
         restored.repos.forEach {
             https(it.url)
-            require(it.type in listOf("mihon", "cloudstream"))
+            require(it.type in listOf("mihon", "aniyomi", "cloudstream"))
         }
-        save(restored.copy(installed = user.installed))
+        save(
+            restored.copy(
+                installed = user.installed,
+                repos = restored.repos.filterNot { it.type == "cloudstream" },
+            )
+        )
     }
 
     private fun validateState(state: UserState) {
@@ -483,7 +451,7 @@ class Engine(private val context: Context) {
                     s.lang.isNotBlank() &&
                     s.packageId.isNotBlank()
             )
-            require(s.type in listOf("mihon", "cloudstream"))
+            require(s.type in listOf("mihon", "aniyomi", "cloudstream"))
         }
         fun title(t: Title) {
             require(
@@ -510,7 +478,7 @@ class Engine(private val context: Context) {
         state.repos.forEach {
             require(it.name.isNotBlank() && it.signer != null)
             https(it.url)
-            require(it.type in listOf("mihon", "cloudstream"))
+            require(it.type in listOf("mihon", "aniyomi", "cloudstream"))
         }
         state.installed.forEach {
             require(
@@ -530,7 +498,7 @@ class Engine(private val context: Context) {
             )
         return client
             .newCall(
-                Request.Builder().url(normalized).header("User-Agent", "Yoru/0.2 Android").build()
+                Request.Builder().url(normalized).header("User-Agent", "Yoru/0.3 Android").build()
             )
             .execute()
             .use { r ->

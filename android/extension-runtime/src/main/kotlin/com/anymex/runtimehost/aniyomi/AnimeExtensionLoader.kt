@@ -43,16 +43,7 @@ internal object AnimeExtensionLoader {
 
     fun loadExtensions(context: Context, path: String?): List<AnimeExtension.Installed> {
         val pkgManager = context.packageManager
-        val installedPkgs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            pkgManager.getInstalledPackages(
-                PackageManager.PackageInfoFlags.of(PACKAGE_FLAGS.toLong())
-            )
-        } else {
-            pkgManager.getInstalledPackages(PACKAGE_FLAGS)
-        }
-
-        val sharedExtPkgs = installedPkgs.asSequence().filter { isPackageAnExtension(it) }
-            .map { AnimeExtensionInfo(it, isShared = true) }.toList()
+        val sharedExtPkgs = emptyList<AnimeExtensionInfo>()
 
         try {
             val privateDir = File(context.filesDir, "exts")
