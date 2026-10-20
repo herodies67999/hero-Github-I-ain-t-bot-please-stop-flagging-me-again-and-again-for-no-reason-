@@ -1,0 +1,229 @@
+{
+  "anime": [
+    {
+      "id": 154587,
+      "title": "Frieren: Beyond Journey\u2019s End",
+      "score": 9.1,
+      "genres": ["Adventure", "Drama", "Fantasy"],
+      "description": "The adventure is over but life goes on for an elf mage just beginning to learn what living is all about. Elf mage Frieren and her courageous fellow adventurers have defeated the Demon King and brought peace to the land. But Frieren will long outlive the rest of her former party. How will she come to understand what life means to the people around her? Decades after their victory, the funeral of one her friends confronts Frieren with her own near immortality. Frieren sets out to fulfill the last wishes of her comrades and finds herself beginning a new adventure\u2026\n<br><br>\n(Source: Crunchyroll)",
+      "count": 28,
+      "color": "#bbf1a1",
+      "cover": "./assets/154587.jpg",
+      "banner": "./assets/154587-banner.jpg"
+    },
+    {
+      "id": 113415,
+      "title": "JUJUTSU KAISEN",
+      "score": 8.4,
+      "genres": ["Action", "Drama", "Supernatural"],
+      "description": "A boy fights... for \"the right death.\"<br>\n<br>\nHardship, regret, shame: the negative feelings that humans feel become Curses that lurk in our everyday lives. The Curses run rampant throughout the world, capable of leading people to terrible misfortune and even death. What's more, the Curses can only be exorcised by another Curse.<br>\n<br>\nItadori Yuji is a boy with tremendous physical strength, though he lives a completely ordinary high school life. One day, to save a friend who has been attacked by Curses, he eats the finger of the Double-Faced Specter, taking the Curse into his own soul. From then on, he shares one body with the Double-Faced Specter. Guided by the most powerful of sorcerers, Gojou Satoru, Itadori is admitted to the Tokyo Metropolitan Technical High School of Sorcery, an organization that fights the Curses... and thus begins the heroic tale of a boy who became a Curse to exorcise a Curse, a life from which he could never turn back.\n<br><br>\n(Source: Crunchyroll)<br>\n<br>\n<i>Note: The first episode received an early web premiere on September 19th, 2020. The regular TV broadcast started on October 3rd, 2020.</i>",
+      "count": 24,
+      "color": "#e45d5d",
+      "cover": "./assets/113415.jpg",
+      "banner": "./assets/113415-banner.jpg"
+    },
+    {
+      "id": 16498,
+      "title": "Attack on Titan",
+      "score": 8.5,
+      "genres": ["Action", "Drama", "Fantasy", "Mystery"],
+      "description": "Several hundred years ago, humans were nearly exterminated by titans. Titans are typically several stories tall, seem to have no intelligence, devour human beings and, worst of all, seem to do it for the pleasure rather than as a food source. A small percentage of humanity survived by walling themselves in a city protected by extremely high walls, even taller than the biggest of titans.<br><br>\r\nFlash forward to the present and the city has not seen a titan in over 100 years. Teenage boy Eren and his foster sister Mikasa witness something horrific as the city walls are destroyed by a colossal titan that appears out of thin air. As the smaller titans flood the city, the two kids watch in horror as their mother is eaten alive. Eren vows that he will murder every single titan and take revenge for all of mankind.<br><br>\r\n(Source: MangaHelpers)",
+      "count": 25,
+      "color": "#f1a143",
+      "cover": "./assets/16498.jpg",
+      "banner": "./assets/16498-banner.jpg"
+    },
+    {
+      "id": 21,
+      "title": "ONE PIECE",
+      "score": 8.7,
+      "genres": ["Action", "Adventure", "Comedy", "Drama", "Fantasy"],
+      "description": "Gold Roger was known as the Pirate King, the strongest and most infamous being to have sailed the Grand Line. The capture and death of Roger by the World Government brought a change throughout the world. His last words before his death revealed the location of the greatest treasure in the world, One Piece. It was this revelation that brought about the Grand Age of Pirates, men who dreamed of finding One Piece (which promises an unlimited amount of riches and fame), and quite possibly the most coveted of titles for the person who found it, the title of the Pirate King.<br><br>\nEnter Monkey D. Luffy, a 17-year-old boy that defies your standard definition of a pirate. Rather than the popular persona of a wicked, hardened, toothless pirate who ransacks villages for fun, Luffy\u2019s reason for being a pirate is one of pure wonder; the thought of an exciting adventure and meeting new and intriguing people, along with finding One Piece, are his reasons of becoming a pirate. Following in the footsteps of his childhood hero, Luffy and his crew travel across the Grand Line, experiencing crazy adventures, unveiling dark mysteries and battling strong enemies, all in order to reach One Piece.<br><br>\n<b>*This includes the following special episodes:</b><br>\n- Chopperman to the Rescue! Protect the TV Station by the Shore! (Episode 336)<br>\n- The Strongest Tag-Team! Luffy and Toriko's Hard Struggle! (Episode 492)<br>\n- Team Formation! Save Chopper (Episode 542)<br>\n- History's Strongest Collaboration vs. Glutton of the Sea (Episode 590)<br>\n- 20th Anniversary! Special Romance Dawn (Episode 907)",
+      "count": 0,
+      "color": "#e49335",
+      "cover": "./assets/21.jpg",
+      "banner": "./assets/21-banner.jpg"
+    },
+    {
+      "id": 101922,
+      "title": "Demon Slayer: Kimetsu no Yaiba",
+      "score": 8.2,
+      "genres": ["Action", "Adventure", "Drama", "Fantasy", "Supernatural"],
+      "description": "It is the Taisho Period in Japan. Tanjiro, a kindhearted boy who sells charcoal for a living, finds his family slaughtered by a demon. To make matters worse, his younger sister Nezuko, the sole survivor, has been transformed into a demon herself. Though devastated by this grim reality, Tanjiro resolves to become a \u201cdemon slayer\u201d so that he can turn his sister back into a human, and kill the demon that massacred his family.<br>\n<br>\n(Source: Crunchyroll)",
+      "count": 26,
+      "color": "#f1c9ae",
+      "cover": "./assets/101922.jpg",
+      "banner": "./assets/101922-banner.jpg"
+    },
+    {
+      "id": 20954,
+      "title": "A Silent Voice",
+      "score": 8.8,
+      "genres": ["Drama", "Romance", "Slice of Life"],
+      "description": "After transferring into a new school, a deaf girl, Shouko Nishimiya, is bullied by the popular Shouya Ishida. As Shouya continues to bully Shouko, the class turns its back on him. Shouko transfers and Shouya grows up as an outcast. Alone and depressed, the regretful Shouya finds Shouko to make amends.\n<br><br>\n(Source: Eleven Arts)",
+      "count": 1,
+      "color": "#5dbbe4",
+      "cover": "./assets/20954.jpg",
+      "banner": "./assets/20954-banner.jpg"
+    },
+    {
+      "id": 21519,
+      "title": "Your Name.",
+      "score": 8.5,
+      "genres": ["Drama", "Romance", "Supernatural"],
+      "description": "Mitsuha Miyamizu, a high school girl, yearns to live the life of a boy in the bustling city of Tokyo\u2014a dream that stands in stark contrast to her present life in the countryside. Meanwhile in the city, Taki Tachibana lives a busy life as a high school student while juggling his part-time job and hopes for a future in architecture.<br>\n<br>\nOne day, Mitsuha awakens in a room that is not her own and suddenly finds herself living the dream life in Tokyo\u2014but in Taki's body! Elsewhere, Taki finds himself living Mitsuha's life in the humble countryside. In pursuit of an answer to this strange phenomenon, they begin to search for one another.<br>\n<br>\n<i>Kimi no Na wa.</i> revolves around Mitsuha and Taki's actions, which begin to have a dramatic impact on each other's lives, weaving them into a fabric held together by fate and circumstance.<br>\n<br>\n(Source: MAL Rewrite)",
+      "count": 1,
+      "color": "#0da1e4",
+      "cover": "./assets/21519.jpg",
+      "banner": "./assets/21519-banner.jpg"
+    },
+    {
+      "id": 151807,
+      "title": "Solo Leveling",
+      "score": 8.0,
+      "genres": ["Action", "Adventure", "Fantasy"],
+      "description": "They say whatever doesn\u2019t kill you makes you stronger, but that\u2019s not the case for the world\u2019s weakest hunter Seong Jin-U. After being brutally slaughtered by monsters in a high-ranking dungeon, Jin-U came back with the System, a program only he could see, that\u2019s leveling him up in every way. Now, he\u2019s inspired to discover the secrets behind his powers and the dungeon that spawned them.<br>\n<br>\n(Source: Crunchyroll) <br><br>",
+      "count": 12,
+      "color": "#35bbf1",
+      "cover": "./assets/151807.jpg",
+      "banner": "./assets/151807-banner.jpg"
+    },
+    {
+      "id": 171018,
+      "title": "DAN DA DAN",
+      "score": 8.3,
+      "genres": [
+        "Action",
+        "Comedy",
+        "Drama",
+        "Romance",
+        "Sci-Fi",
+        "Supernatural"
+      ],
+      "description": "This is a story about Momo, a high school girl who comes from a family of spirit mediums, and her classmate Okarun, an occult fanatic. After Momo rescues Okarun from being bullied, they begin talking. However, an argument ensues between them since Momo believes in ghosts but denies aliens exist, and Okarun believes in aliens but denies ghosts exist.\n<br><br>\nTo prove to each other what they believe in is real, Momo goes to an abandoned hospital where a UFO has been spotted and Okarun goes to a tunnel rumored to be haunted. To their surprise, they each encounter overwhelming paranormal activities that transcend comprehension. Amid these predicaments, Momo awakens her hidden power and Okarun gains the power of a curse to overcome these new dangers! Their fateful love begins as well!?\n<br><br>\nThe story of the occult battle and adolescence starts!<br><br>\n(Source: Crunchyroll) <br><br>\n\n<i>Notes: <br>\n- Worldwide premiere of Episode 1 before the Japanese television premiere occurred at Anime Expo July 6, 2024. <br>\n- Episodes 1-3 titled as <b>DAN DA DAN: FIRST ENCOUNTER</b> was pre-screened in advance in theaters on August 31, 2024 in Asia, September 7, 2024 in Europe and September 13, 2024 in North America. The regular TV broadcast began October 4, 2024.</i>",
+      "count": 12,
+      "color": "#e47850",
+      "cover": "./assets/171018.jpg",
+      "banner": "./assets/171018-banner.jpg"
+    },
+    {
+      "id": 1645,
+      "title": "Harlock Saga: The Ring of the Nibelung",
+      "score": 6.2,
+      "genres": ["Adventure", "Drama", "Sci-Fi"],
+      "description": "Captain Harlock is drawn into a saga of intergalactic proportions when the son of a deceased comrade unwittingly forges the Ring of the Niebelung. Evil forces gather to wage war against the last remaining superpowers of the galaxy led by a demented outcast. Harlock must counter the amassed armadas that threaten the last gods and recover the ring before Paradise is lost. <br><br>\n(Source: Anime News Network)",
+      "count": 6,
+      "color": "#d6431a",
+      "cover": "./assets/1645.jpg",
+      "banner": "./assets/1645.jpg"
+    }
+  ],
+  "manga": [
+    {
+      "id": 105778,
+      "title": "Chainsaw Man",
+      "score": 8.4,
+      "genres": ["Action", "Comedy", "Drama", "Horror", "Supernatural"],
+      "description": "The name says it all! Denji's life of poverty is changed forever when he merges with his pet chainsaw dog, Pochita! Now he's living in the big city and an official Devil Hunter. But he's got a lot to learn about his new job and chainsaw powers!<br>\n<br>\n(Source: MANGA Plus)<br>\n<br>\n<i>Notes:<br>\n- Nominated for the 2020 Manga Taisho Award.<br>\n- Winner of the 2021 Kono Manga ga Sugoi Award.<br>\n- Winner of the 66th Shogakukan Manga Award in the shounen category.<br>\n- Winner of the 2021 and 2022 Harvey Award for Best Manga.<br>\n- Chapters 1-97 were released in Weekly Shounen Jump from Dec 3, 2018 to Dec 13, 2020. The series resumed from Ch. 98 in Shounen Jump+ on July 12, 2022</i>",
+      "count": 232,
+      "color": "#f1c90d",
+      "cover": "./assets/105778.jpg",
+      "banner": "./assets/105778-banner.jpg"
+    },
+    {
+      "id": 101517,
+      "title": "Jujutsu Kaisen",
+      "score": 8.0,
+      "genres": ["Action", "Drama", "Supernatural"],
+      "description": "Although Yuji Itadori looks like your average teenager, his immense physical strength is something to behold! Every sports club wants him to join, but Itadori would rather hang out with the school outcasts in the Occult Research Club. One day, the club manages to get their hands on a sealed cursed object. Little do they know the terror they\u2019ll unleash when they break the seal\u2026\n<br><br>\n(Source: VIZ Media)\n<br><br>\n<i>Notes:<br>\n- Ranked 1st in Japan's Bookstore Employees Top Manga of 2018.<br>\n- Nominated for the 25th Annual Tezuka Osamu Cultural Prize in 2021.<br>\n- Nominated for the 65th Shogakukan Manga Award in the Shounen Category in 2019.<br>\n- Includes one extra chapter.</i>",
+      "count": 272,
+      "color": "#e4a15d",
+      "cover": "./assets/101517.jpg",
+      "banner": "./assets/101517-banner.jpg"
+    },
+    {
+      "id": 30002,
+      "title": "Berserk",
+      "score": 9.2,
+      "genres": [
+        "Action",
+        "Adventure",
+        "Drama",
+        "Fantasy",
+        "Horror",
+        "Psychological"
+      ],
+      "description": "His name is Guts, the Black Swordsman, a feared warrior spoken of only in whispers. Bearer of a gigantic sword, an iron hand, and the scars of countless battles and tortures, his flesh is also indelibly marked with The Brand, an unholy symbol that draws the forces of darkness to him and dooms him as their sacrifice. But Guts won't take his fate lying down; he'll cut a crimson swath of carnage through the ranks of the damned\u2014and anyone else foolish enough to oppose him! Accompanied by Puck the Elf, more an annoyance than a companion, Guts relentlessly follows a dark, bloodstained path that leads only to death...or vengeance.<br>\n<br>\n(Source: Dark Horse)<br>\n<br>\n<i>Notes:<br>\n- Volumes 1-5 contain the 16 prequel chapters 0A - 0P.<br>\n- <a href=\"https://anilist.co/manga/95821/\">Chapter 83</a> was omitted from Volume 13 due to the author\u2019s request.<br>\n- Volume 14 includes \u201c<a href=\"https://anilist.co/manga/36408/\">Berserk: The Prototype</a>\u201d.<br>\n- Due to the author's passing, starting from Chapter 365, the manga is illustrated by Studio Gaga (Miura's assistants) and supervised by Kouji Mori (a close friend of Miura's).</i>",
+      "count": 0,
+      "color": "#d6861a",
+      "cover": "./assets/30002.jpg",
+      "banner": "./assets/30002-banner.jpg"
+    },
+    {
+      "id": 30013,
+      "title": "One Piece",
+      "score": 9.1,
+      "genres": ["Action", "Adventure", "Comedy", "Fantasy"],
+      "description": "As a child, Monkey D. Luffy was inspired to become a pirate by listening to the tales of the buccaneer \"Red-Haired\" Shanks. But his life changed when Luffy accidentally ate the Gum-Gum Devil Fruit and gained the power to stretch like rubber...at the cost of never being able to swim again! Years later, still vowing to become the king of the pirates, Luffy sets out on his adventure...one guy alone in a rowboat, in search of the legendary \"One Piece,\" said to be the greatest treasure in the world...\n<br><br>\n(Source: VIZ Media)",
+      "count": 0,
+      "color": "#f1935d",
+      "cover": "./assets/30013.jpg",
+      "banner": "./assets/30013-banner.jpg"
+    },
+    {
+      "id": 87216,
+      "title": "Demon Slayer: Kimetsu no Yaiba",
+      "score": 7.9,
+      "genres": ["Action", "Adventure", "Drama", "Supernatural"],
+      "description": "The setting is Taisho era Japan. Tanjirou is a kindhearted young boy who lived peacefully with his family as a coal seller. Their normal life changes completely when his family is slaughtered by demons. The only other survivor, Tanjirou's younger sister Nezuko, has become a ferocious demon. In order to return Nezuko to normal and get revenge on the demon that killed their family, the two of them depart on a journey. From a young talent, an adventure tale of blood and swords begins!\n<br><br>\n(Source: Shonen Jump)\n<br><br>\n<i>Notes:<br>\n- Includes two extra chapters.<br> \n- Nominated to the 24th and 25th Annual Tezuka Osamu Cultural Prize.</i>",
+      "count": 207,
+      "color": "#f1d628",
+      "cover": "./assets/87216.jpg",
+      "banner": "./assets/87216-banner.jpg"
+    },
+    {
+      "id": 30012,
+      "title": "Bleach",
+      "score": 8.0,
+      "genres": ["Action", "Adventure", "Supernatural"],
+      "description": "Ichigo Kurosaki has always been able to see ghosts, but this ability doesn't change his life nearly as much as his close encounter with Rukia Kuchiki, a Soul Reaper and member of the mysterious Soul Society. While fighting a Hollow, an evil spirit that preys on humans who display psychic energy, Rukia attempts to lend Ichigo some of her powers so that he can save his family; but much to her surprise, Ichigo absorbs every last drop of her energy. Now a full-fledged Soul Reaper himself, Ichigo quickly learns that the world he inhabits is one full of dangerous spirits and, along with Rukia\u2014 who is slowly regaining her powers\u2014 it's Ichigo's job to protect the innocent from Hollows and help the spirits themselves find peace.<br><br>\n(Source: VIZ Media)<br><br>\n<i>Note: Includes the 12-chapter \u201cTurn Back The Pendulum\u201d side story and 8 extra chapters.</i>",
+      "count": 706,
+      "color": "#5da1f1",
+      "cover": "./assets/30012.jpg",
+      "banner": "./assets/30012-banner.jpg"
+    },
+    {
+      "id": 30001,
+      "title": "Monster",
+      "score": 9.0,
+      "genres": ["Drama", "Mystery", "Psychological", "Thriller"],
+      "description": "Everyone faces uncertainty at some point in their lives. Even a brilliant surgeon like Kenzo Tenma is no exception. But there\u2019s no way he could have known that his decision to stop chasing professional success and instead concentrate on his oath to save peoples\u2019 lives would result in the birth of an abomination. The questions of good and evil now take on a terrifyingly real dimension.\n<br><br>\nYears later, in Germany during the tumultuous post-reunification period, middle-aged childless couples are being killed one after another. The serial killer\u2019s identity is known. The reasons why he kills are not. Dr. Tenma sets out on a journey to find the killer\u2019s twin sister, who may hold some clues to solving the enigma of the \u201cMonster.\u201d\n<br><br>\n(Source: VIZ Media)",
+      "count": 162,
+      "color": "#50a1e4",
+      "cover": "./assets/30001.jpg",
+      "banner": "./assets/30001-banner.jpg"
+    },
+    {
+      "id": 126297,
+      "title": "Teenage Mercenary",
+      "score": 7.9,
+      "genres": ["Action", "Drama"],
+      "description": "At the age of eight, I-Jin Yu lost his parents in a plane crash and became stranded in a foreign land, forced to become a child mercenary in order to stay alive. He returns home ten years later to be reunited with his family in Korea, where food and shelter are plenty and everything seems peaceful. But I-Jin will soon learn that life as a teenager is a whole other feat of survival. With only one year of high school left, I-Jin must master new tactics to maneuver his way around the schoolhouse battleground. Can he survive a year of high school? Or rather, will the school be able to survive him?<br>\n<br>\n(Source: WEBTOON)",
+      "count": 0,
+      "color": "#f1c9a1",
+      "cover": "./assets/126297.jpg",
+      "banner": "./assets/126297-banner.jpg"
+    },
+    {
+      "id": 85412,
+      "title": "Girls' Last Tour",
+      "score": 8.6,
+      "genres": ["Adventure", "Sci-Fi", "Slice of Life"],
+      "description": "Civilization is dead, but Chito and Yuuri are still alive. So they hop aboard their beloved Kettenkrad motorbike and aimlessly wander the ruins of the world they once knew. Day after hopeless day, they look for their next meal and fuel for their ride. But as long as the two are together, even an existence as bleak as theirs has a ray or two of sunshine in it, whether they're sucking down their fill of soup or hunting for machine parts to tinker with. For two girls in a world full of nothing, the experiences and feelings the two share give them something to live for\u2026<br>\n<br>\n(Source: Yen Press)\n<br><br>\n<i>Note: Winner of the Best Comic Award at the Seiun Awards in 2019.</i>",
+      "count": 47,
+      "color": "#748a6c",
+      "cover": "./assets/85412.jpg",
+      "banner": "./assets/85412-banner.jpg"
+    }
+  ]
+}

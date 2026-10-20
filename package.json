@@ -1,0 +1,17 @@
+{
+  "name": "yoru",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "android": "node tools/build-android.mjs",
+    "split": "node tools/split-apk.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  },
+  "dependencies": {
+    "@noble/hashes": "1.8.0"
+  }
+}
