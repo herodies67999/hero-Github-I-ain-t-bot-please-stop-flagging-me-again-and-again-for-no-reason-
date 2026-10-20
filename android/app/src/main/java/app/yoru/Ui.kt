@@ -414,7 +414,7 @@ private fun DiscoverScreen(model: AppModel) {
         contentPadding = PaddingValues(bottom = 20.dp),
     ) {
         item {
-            Box(Modifier.fillMaxWidth().height(heroHeight).background(ambient)) {
+            Box(Modifier.fillMaxWidth().height(heroHeight).clipToBounds().background(ambient)) {
                 AsyncImage(
                     hero.cover,
                     "${hero.title} key art",
